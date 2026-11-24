@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Knits
+GenericName=Desktop Environment
+Comment=A macOS-style desktop that runs on your Linux device
+Exec=knits
+TryExec=knits
+Icon=knits
+Terminal=false
+Categories=Utility;System;
+Keywords=macos;desktop;knits;simulator;
+StartupNotify=true
+StartupWMClass=Knits

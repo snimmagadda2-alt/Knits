@@ -1,0 +1,18 @@
+Package: knits
+Version: __VERSION__
+Section: misc
+Priority: optional
+Architecture: all
+Installed-Size: __SIZE__
+Depends: python3 (>= 3.7)
+Recommends: chromium | chromium-browser | google-chrome-stable | firefox
+Maintainer: Knits <knits@localhost>
+Homepage: https://github.com/snimmagadda2-alt/Knits
+Description: macOS-style desktop environment for Debian-based devices
+ Knits is a self-contained desktop experience that looks and behaves like
+ macOS: a menu bar, a dock, draggable windows, Finder, Terminal, Notes,
+ Calculator and System Settings.
+ .
+ It runs as a local web app. The knits command serves the bundled files on
+ 127.0.0.1 and opens them in an app window, so nothing is uploaded and no
+ network connection is required.
