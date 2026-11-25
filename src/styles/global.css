@@ -2224,6 +2224,311 @@ html[data-theme="light"] .dock-sep {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
 }
 
+/* macOS-style installer steps */
+
+.installer-step {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.installer-step h3 {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.installer-step p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.installer-licence {
+  height: 150px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  font-family: var(--font);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+}
+
+.installer-disks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+}
+
+.installer-disks li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--field);
+}
+
+.installer-disks li em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.installer-disks li span {
+  flex: 1;
+}
+
+.installer-disks li svg:last-child {
+  color: var(--accent);
+}
+
+.installer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.installer-table th,
+.installer-table td {
+  padding: 7px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.installer-table th {
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.installer-auth {
+  align-items: center;
+  text-align: center;
+}
+
+.installer-auth label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.installer-auth input {
+  width: 190px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.installer-auth input:focus {
+  border-color: var(--accent);
+}
+
+.installer-lock {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--field);
+  color: var(--text-dim);
+}
+
+.installer-phases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.installer-phases li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.installer-phases li.is-active {
+  color: var(--text);
+}
+
+.installer-phases li.is-done {
+  color: #30d158;
+}
+
+.installer-phase-dot {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.installer-summary {
+  align-items: center;
+  text-align: center;
+}
+
+.installer-check {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(48, 209, 88, 0.14);
+  color: #30d158;
+}
+
+.installer-foot-spacer {
+  flex: 1;
+}
+
+.installer-foot-note {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* mounted disk image */
+
+.volume-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volume-eject {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.volume-eject:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.volume-body {
+  gap: 12px;
+}
+
+.volume-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 9px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.volume-app:hover {
+  background: var(--hover);
+}
+
+.volume-app.is-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.installer-folder {
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px dashed transparent;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.installer-folder.is-target {
+  border-color: var(--accent);
+  background: rgba(10, 132, 255, 0.14);
+  color: var(--text);
+}
+
+.volume-ghost {
+  position: fixed;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+}
+
+.desktop-volumes {
+  position: absolute;
+  top: 44px;
+  right: 22px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.desktop-volume {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 11px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.desktop-volume:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.desktop-volume svg {
+  color: #e8ecf7;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* ---------- update log ---------- */
 
 .whatsnew-backdrop {

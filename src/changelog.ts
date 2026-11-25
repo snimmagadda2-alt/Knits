@@ -7,6 +7,16 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.4.0',
+    date: '25 November 2026',
+    changes: [
+      'Installer now walks through the same steps macOS uses: welcome, licence agreement, destination disk, install type, password, progress and a success summary.',
+      'A .dmg mounts on the desktop as a disk you can eject, and its volume window shows the app beside an Applications folder.',
+      'Install a disk image the Mac way: drag the app onto Applications, or double-click it.',
+      'Every step still installs inside Knits only — nothing is written to your real computer.',
+    ],
+  },
+  {
     version: '1.3.0',
     date: '25 November 2026',
     changes: [

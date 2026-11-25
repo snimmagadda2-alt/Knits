@@ -222,6 +222,13 @@ export function Glyph({ name, size = 16 }: { name: string; size?: number }) {
           <path d="M4.5 19.5h15" />
         </svg>
       );
+    case 'eject':
+      return (
+        <svg {...props}>
+          <path d="M12 4.5L5.5 13h13z" />
+          <path d="M5.5 17.5h13" />
+        </svg>
+      );
     case 'check':
       return (
         <svg {...props}>

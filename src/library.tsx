@@ -34,11 +34,23 @@ export interface InstalledApp extends AppletSpec {
   installedAt: number;
 }
 
+export interface Volume {
+  id: string;
+  name: string;
+  app: AppletSpec;
+  download: Download;
+}
+
 interface LibraryValue {
   downloads: Download[];
   apps: InstalledApp[];
-  /** The package whose installer or disk image is open. */
+  /** The .pkg whose installer window is open. */
   active: Download | null;
+  /** Mounted disk images, each showing on the desktop until ejected. */
+  volumes: Volume[];
+  openVolume: string | null;
+  selectVolume: (id: string | null) => void;
+  eject: (id: string) => void;
   download: (url: string) => Promise<void>;
   install: (download: Download) => InstalledApp | null;
   open: (download: Download) => void;
@@ -120,6 +132,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const [apps, setApps] = useState<InstalledApp[]>(() => readStore<InstalledApp[]>(APPS_KEY, []));
   const [downloads, setDownloads] = useState<Download[]>(() => readStore<Download[]>(DOWNLOADS_KEY, []));
   const [active, setActive] = useState<Download | null>(null);
+  const [volumes, setVolumes] = useState<Volume[]>([]);
+  const [openVolume, setOpenVolume] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -176,8 +190,31 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     return record;
   }, []);
 
-  const open = useCallback((entry: Download) => setActive(entry), []);
+  const selectVolume = useCallback((id: string | null) => setOpenVolume(id), []);
+
+  const open = useCallback((entry: Download) => {
+    if (entry.format === 'dmg' && entry.app) {
+      const id = entry.id;
+      setVolumes((prev) =>
+        prev.some((volume) => volume.id === id)
+          ? prev
+          : [...prev, { id, name: entry.volume ?? entry.app!.name, app: entry.app!, download: entry }],
+      );
+      setOpenVolume(id);
+      setActive(null);
+      return;
+    }
+    // One installer surface at a time, the way macOS behaves.
+    setOpenVolume(null);
+    setActive(entry);
+  }, []);
+
   const close = useCallback(() => setActive(null), []);
+
+  const eject = useCallback((id: string) => {
+    setVolumes((prev) => prev.filter((volume) => volume.id !== id));
+    setOpenVolume((current) => (current === id ? null : current));
+  }, []);
   const remove = useCallback((id: string) => setDownloads((prev) => prev.filter((item) => item.id !== id)), []);
   const clearDownloads = useCallback(() => setDownloads([]), []);
 
@@ -186,6 +223,10 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       downloads,
       apps,
       active,
+      volumes,
+      openVolume,
+      selectVolume,
+      eject,
       download,
       install,
       open,
@@ -194,7 +235,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       clearDownloads,
       installed: (id: string) => apps.find((app) => app.id === id),
     }),
-    [downloads, apps, active, download, install, open, close, remove, clearDownloads],
+    [downloads, apps, active, volumes, openVolume, selectVolume, eject, download, install, open, close, remove, clearDownloads],
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

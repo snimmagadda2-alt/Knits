@@ -5,9 +5,11 @@ import { useLibrary } from '../library';
 import { IS_APP } from '../environment';
 import { Applet } from '../apps/Applet';
 import { PackageInstaller } from '../apps/Installer';
+import { DiskImage } from '../apps/DiskImage';
 import { Dock } from '../components/Dock';
 import { MenuBar } from '../components/MenuBar';
 import { Spotlight } from '../components/Spotlight';
+import { Glyph } from '../components/Icon';
 import { Window } from '../components/Window';
 import { Finder } from '../apps/Finder';
 import { Safari } from '../apps/Safari';
@@ -59,7 +61,15 @@ function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
 
 export default function Desktop() {
   const { wallpaper } = usePrefs();
-  const { apps: installedApps, active: activePackage, close: closePackage } = useLibrary();
+  const {
+    apps: installedApps,
+    active: activePackage,
+    close: closePackage,
+    volumes,
+    openVolume,
+    selectVolume,
+    eject,
+  } = useLibrary();
   const wm = useWindows();
   const [locked, setLocked] = useState(true);
   const [spotlight, setSpotlight] = useState(false);
@@ -143,6 +153,22 @@ export default function Desktop() {
           ))}
       </div>
 
+      {volumes.length > 0 && (
+        <div className="desktop-volumes">
+          {volumes.map((volume) => (
+            <button
+              key={volume.id}
+              className="desktop-volume"
+              onClick={() => selectVolume(volume.id)}
+              title={`${volume.name} — mounted disk image`}
+            >
+              <Glyph name="disk" size={32} />
+              <span>{volume.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <Dock runningApps={running} activeApp={wm.activeApp} onOpen={(id) => wm.openApp(id)} />
 
       {spotlight && <Spotlight onClose={() => setSpotlight(false)} onOpenApp={(id) => wm.openApp(id)} />}
@@ -156,6 +182,19 @@ export default function Desktop() {
           onRun={(id) => wm.openApp(id as AppId)}
         />
       )}
+
+      {IS_APP &&
+        volumes.map((volume) =>
+          openVolume === volume.id ? (
+            <DiskImage
+              key={volume.id}
+              volume={volume}
+              onClose={() => selectVolume(null)}
+              onEject={() => eject(volume.id)}
+              onRun={(id) => wm.openApp(id as AppId)}
+            />
+          ) : null,
+        )}
     </div>
   );
 }

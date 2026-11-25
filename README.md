@@ -23,10 +23,12 @@ not run macOS binaries and does not ship or require Apple firmware.
 - **Safari** (installed app only) — address bar with search, back/forward, reload,
   favourites, an offline page, and an escape hatch that opens a page in a real tab.
 - **Packages** (installed app only) — Safari downloads `.pkg` and `.dmg` files into a
-  Downloads shelf. Installer opens a `.pkg` and installs its app into Knits; a `.dmg`
-  mounts a virtual volume with a *Move to Applications* step. Installed apps appear in
-  the Dock and Spotlight and are remembered in `localStorage`. Nothing is written to
-  the real computer and no macOS software is executed.
+  Downloads shelf. A `.pkg` opens Installer, which follows the macOS steps: welcome,
+  licence, destination, install type, password, progress and summary. A `.dmg` mounts on
+  the desktop as an ejectable disk whose volume window holds the app beside an
+  Applications folder — drag it across, or double-click it. Installed apps appear in the
+  Dock and Spotlight and are remembered in `localStorage`. Nothing is written to the
+  real computer and no macOS software is executed.
 - **Wi-Fi** (installed app only) — the menu-bar Wi-Fi item is a real switch: turn it
   off, on, or move between networks. Safari refuses to load anything while it is off.
 - **Jelly animations** (installed app only) — minimising sends the window flying into
@@ -63,7 +65,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.3.0_all.deb
+sudo apt install ./dist/knits_1.4.0_all.deb
 knits
 ```
 
