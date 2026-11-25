@@ -70,6 +70,7 @@ say "configuring live-build (Debian 12, amd64)"
     --architectures amd64 \
     --distribution bookworm \
     --archive-areas main \
+    --apt-recommends false \
     --mirror-bootstrap "http://deb.debian.org/debian" \
     --mirror-chroot "http://deb.debian.org/debian" \
     --mirror-chroot-security "http://security.debian.org/debian-security" \
