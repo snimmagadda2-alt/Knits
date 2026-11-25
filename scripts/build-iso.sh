@@ -95,6 +95,7 @@ if ! (cd "$WORK" && lb build) 2>&1 | tee "$LOG"; then
   grep -a -i -E '(^E:|error|failed|cannot|not found|unable|no space)' "$LOG" |
     tail -n 8 | sed 's/\r//g; s/^/::error::/' || true
   echo "::error::bootstrap: $(command -v debootstrap || echo 'debootstrap missing') · $(command -v cdebootstrap || echo 'cdebootstrap missing')"
+  echo "::error::gpg: $(command -v gpgv || echo 'gpgv missing') · $(command -v gpg || echo 'gpg missing')"
   echo "::error::disk: $(df -h . | tail -n 1)"
   exit 1
 fi
