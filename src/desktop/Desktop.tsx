@@ -22,6 +22,7 @@ import { About } from '../apps/About';
 import { LoginScreen } from './LoginScreen';
 import { UpdateLog } from './UpdateLog';
 import { useWindows } from './useWindows';
+import { checkForUpdate, installUpdate, markUpdateAttempt, updateAttempted } from '../updater';
 
 const SEEN_KEY = 'knits.seenVersion';
 
@@ -77,6 +78,7 @@ export default function Desktop() {
   const [locked, setLocked] = useState(true);
   const [spotlight, setSpotlight] = useState(false);
   const [updates, setUpdates] = useState<{ since: string | null } | null>(null);
+  const [selfUpdate, setSelfUpdate] = useState<{ phase: 'working' | 'failed'; version: string } | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -95,6 +97,32 @@ export default function Desktop() {
     if (locked) return;
     const seen = readSeenVersion();
     if (seen !== __VERSION__) setUpdates({ since: seen });
+  }, [locked]);
+
+  // An installed copy updates itself: ask the local server what has been published,
+  // unpack a newer bundle when there is one, then reload into it. One attempt per
+  // build per session keeps a broken download from looping.
+  useEffect(() => {
+    if (locked || !IS_APP) return;
+    let cancelled = false;
+    const run = async () => {
+      const check = await checkForUpdate();
+      if (cancelled || !check?.available || updateAttempted(check.latest)) return;
+      markUpdateAttempt(check.latest);
+      setSelfUpdate({ phase: 'working', version: check.latest });
+      const result = await installUpdate();
+      if (cancelled) return;
+      if (result.updated) {
+        setSelfUpdate({ phase: 'working', version: result.version ?? check.latest });
+        window.setTimeout(() => window.location.reload(), 700);
+      } else {
+        setSelfUpdate({ phase: 'failed', version: check.latest });
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
   }, [locked]);
 
   const closeUpdates = () => {
@@ -181,6 +209,14 @@ export default function Desktop() {
       {spotlight && <Spotlight onClose={() => setSpotlight(false)} onOpenApp={(id) => wm.openApp(id)} />}
 
       {updates && <UpdateLog since={updates.since} onClose={closeUpdates} />}
+
+      {selfUpdate && (
+        <div className={`update-pill${selfUpdate.phase === 'failed' ? ' is-failed' : ''}`} role="status">
+          {selfUpdate.phase === 'working'
+            ? `Updating Knits to ${selfUpdate.version}…`
+            : `Knits ${selfUpdate.version} could not be installed — System Settings › Software Update`}
+        </div>
+      )}
 
       {IS_APP && activePackage && (
         <PackageInstaller

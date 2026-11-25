@@ -7,6 +7,16 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.7.0',
+    date: '25 November 2026',
+    changes: [
+      'Installed copies update themselves: when a newer build is published, Knits downloads it on the next launch and restarts into it — no password prompt and no reinstall.',
+      'Updates unpack beside the installed app in your home folder, so your files, installed apps and settings are kept.',
+      'System Settings has a new Software Update pane with Check for Updates and a one-click update.',
+      'Every update is checksum-verified, and the updater only accepts HTTPS downloads.',
+    ],
+  },
+  {
     version: '1.6.0',
     date: '25 November 2026',
     changes: [

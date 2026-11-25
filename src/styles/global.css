@@ -3403,3 +3403,62 @@ html[data-theme="light"] .dock-sep {
     flex-basis: 150px;
   }
 }
+
+/* ---------- software update ---------- */
+
+.update-pill {
+  position: fixed;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(28, 28, 32, 0.92);
+  color: #fff;
+  font-size: 12.5px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+.update-pill.is-failed {
+  background: rgba(150, 32, 32, 0.94);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 6px;
+}
+
+.settings-action {
+  padding: 6px 12px;
+  border: 1px solid var(--stroke);
+  border-radius: 7px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.settings-action:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.settings-action.is-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}
+
+.settings-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.settings-status {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}

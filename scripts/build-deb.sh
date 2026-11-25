@@ -15,6 +15,10 @@ if [ ! -f "$ROOT/dist/web/index.html" ]; then
   exit 1
 fi
 
+# The app reads this to know which build it is running; the updater compares it with
+# latest.json before downloading anything.
+printf '{"version":"%s"}\n' "$VERSION" > "$ROOT/dist/web/version.json"
+
 if ! command -v dpkg-deb >/dev/null 2>&1; then
   echo "build-deb: dpkg-deb is required (apt install dpkg-dev)" >&2
   exit 1
@@ -62,3 +66,23 @@ cp -f "$OUT" "$ROOT/dist/web/downloads/knits_all.deb"
 
 echo "build-deb: $OUT"
 echo "build-deb: $(du -h "$OUT" | cut -f1) — $(dpkg-deb -f "$OUT" Package) $(dpkg-deb -f "$OUT" Version) ($(dpkg-deb -f "$OUT" Architecture))"
+
+# Publish a self-update bundle beside the package. The installed app downloads this
+# archive and unpacks it into the user's home, so an update needs no root and no
+# reinstall. latest.json is the manifest every install polls.
+mkdir -p "$ROOT/dist/web/downloads"
+BUNDLE="$ROOT/dist/web/downloads/knits_${VERSION}_web.tar.gz"
+tar -czf "$BUNDLE" -C "$ROOT/dist/web" --exclude=downloads .
+SHA="$(sha256sum "$BUNDLE" | cut -d' ' -f1)"
+BYTES="$(stat -c %s "$BUNDLE")"
+cat > "$ROOT/dist/web/latest.json" <<EOF
+{
+  "version": "$VERSION",
+  "bundle": "downloads/knits_${VERSION}_web.tar.gz",
+  "sha256": "$SHA",
+  "size": $BYTES
+}
+EOF
+
+echo "build-deb: $BUNDLE ($(du -h "$BUNDLE" | cut -f1), sha256 ${SHA:0:12}…)"
+echo "build-deb: dist/web/latest.json → $VERSION"

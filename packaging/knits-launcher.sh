@@ -4,6 +4,9 @@ set -eu
 
 WEB_DIR="${KNITS_WEB_DIR:-/opt/knits/web}"
 SERVE="${KNITS_SERVE:-/opt/knits/serve.py}"
+# Updates unpack here, in the user's own files, so applying one needs no root.
+OVERLAY="${KNITS_OVERLAY:-${XDG_DATA_HOME:-$HOME/.local/share}/knits/web}"
+mkdir -p "$OVERLAY"
 TARGET="/#/desktop"
 
 if [ ! -f "$WEB_DIR/index.html" ]; then
@@ -19,7 +22,7 @@ s.close()')"
 BASE="http://127.0.0.1:$PORT"
 URL="$BASE$TARGET"
 
-python3 "$SERVE" "$WEB_DIR" "$PORT" >/dev/null 2>&1 &
+python3 "$SERVE" "$WEB_DIR" "$PORT" "$OVERLAY" >/dev/null 2>&1 &
 SERVER_PID=$!
 cleanup() { kill "$SERVER_PID" 2>/dev/null || true; }
 trap cleanup EXIT INT TERM

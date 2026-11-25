@@ -69,7 +69,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.6.0_all.deb
+sudo apt install ./dist/knits_1.7.0_all.deb
 knits
 ```
 
@@ -93,6 +93,27 @@ The package is architecture-independent and depends only on `python3`. It
 recommends a Chromium or Firefox browser for the app window. `knits` serves the
 bundle on `127.0.0.1` on a free port and shuts the server down when the window
 closes.
+
+## Updates
+
+An installed copy updates itself. On launch the app asks its local server
+(`GET /api/update`) what has been published at
+`https://knits-3qflim-preview.freebuff.site/latest.json`. If the manifest names a
+newer version, it downloads that bundle, checks its SHA-256, unpacks it into
+`~/.local/share/knits/web` and reloads into it. The launcher serves that overlay
+before `/opt/knits/web`, so an update needs no root, no password prompt and no
+reinstall — your files, installed apps and settings stay where they are.
+`System Settings › Software Update` runs the same check by hand.
+
+`npm run build` writes `dist/web/latest.json` and
+`dist/web/downloads/knits_<version>_web.tar.gz` beside the package. Deploy
+`dist/web` and every install picks the new build up on its next launch. Point a
+build at another channel with
+`KNITS_UPDATE_URL=https://example.com/latest.json knits`.
+
+The updater accepts only HTTPS downloads (plain HTTP is allowed for a loopback
+test manifest), refuses archives that would unpack outside the overlay, and
+verifies the checksum before replacing anything.
 
 ## Project layout
 

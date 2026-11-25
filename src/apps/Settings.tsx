@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { ACCENTS, WALLPAPERS, usePrefs } from '../prefs';
+import { IS_APP } from '../environment';
+import { checkForUpdate, installUpdate } from '../updater';
 
 const SECTIONS = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'wallpaper', label: 'Wallpaper' },
   { id: 'accent', label: 'Accent Colour' },
   { id: 'install', label: 'Install on Linux' },
+  { id: 'update', label: 'Software Update' },
   { id: 'about', label: 'About' },
 ] as const;
 
@@ -114,6 +117,8 @@ export function Settings() {
           </>
         )}
 
+        {section === 'update' && <SoftwareUpdate />}
+
         {section === 'about' && (
           <>
             <h2>About</h2>
@@ -133,5 +138,69 @@ export function Settings() {
         )}
       </div>
     </div>
+  );
+}
+
+function SoftwareUpdate() {
+  const [available, setAvailable] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const check = async () => {
+    setBusy(true);
+    setMessage(null);
+    const result = await checkForUpdate();
+    setBusy(false);
+    if (!result) {
+      setMessage('Knits could not reach the update service. Check the connection and try again.');
+      return;
+    }
+    setAvailable(result.available ? result.latest : null);
+    setMessage(result.available ? `Knits ${result.latest} is available.` : 'Knits is up to date.');
+  };
+
+  const install = async () => {
+    setBusy(true);
+    setMessage('Downloading the update…');
+    const result = await installUpdate();
+    if (!result.updated) {
+      setBusy(false);
+      setMessage(result.error ?? 'The update could not be installed.');
+      return;
+    }
+    setMessage(`Knits ${result.version} installed. Reloading…`);
+    window.setTimeout(() => window.location.reload(), 700);
+  };
+
+  return (
+    <>
+      <h2>Software Update</h2>
+      <div className="settings-row">
+        <span>Version</span>
+        <code>{__VERSION__}</code>
+      </div>
+      <div className="settings-row">
+        <span>Channel</span>
+        <code>Stable</code>
+      </div>
+      <p className="settings-note">
+        {IS_APP
+          ? 'Knits checks for a newer build when it starts and updates itself in place — no password and no reinstall. An update unpacks beside the installed app and keeps your files, apps and settings.'
+          : 'Automatic updates belong to the installed app. Download the package to run one.'}
+      </p>
+      {IS_APP && (
+        <div className="settings-actions">
+          <button className="settings-action" onClick={check} disabled={busy}>
+            Check for Updates
+          </button>
+          {available && (
+            <button className="settings-action is-primary" onClick={install} disabled={busy}>
+              Update to {available}
+            </button>
+          )}
+        </div>
+      )}
+      {message && <p className="settings-status">{message}</p>}
+    </>
   );
 }
