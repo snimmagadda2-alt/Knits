@@ -125,8 +125,10 @@ export function PackageInstaller({ download, onClose, onRun }: Props) {
                 <div className="installer-step">
                   <h3>Welcome to the {app.name} Installer</h3>
                   <p>
-                    This package installs {app.name} into Knits. The app appears in your Dock and Spotlight, and it is
-                    available the next time you open Knits.
+                    {download.format === 'deb'
+                      ? `This Debian package installs ${app.name} into Knits.`
+                      : `This package installs ${app.name} into Knits.`}{' '}
+                    The app appears in your Dock and Spotlight, and it is available the next time you open Knits.
                   </p>
                   <p className="installer-note">
                     Installations stay inside Knits. Nothing is written to your real computer and no macOS software runs.
@@ -156,7 +158,10 @@ export function PackageInstaller({ download, onClose, onRun }: Props) {
                       <Glyph name="check" size={16} />
                     </li>
                   </ul>
-                  <p className="installer-note">Other disks are not available: Knits is a single virtual machine.</p>
+                  <p className="installer-note">
+                    Other disks are not available: Knits is a single virtual machine.{' '}
+                    {download.format === 'deb' ? 'The package is verified before it is unpacked.' : ''}
+                  </p>
                 </div>
               )}
 
@@ -166,7 +171,7 @@ export function PackageInstaller({ download, onClose, onRun }: Props) {
                   <table className="installer-table">
                     <thead>
                       <tr>
-                        <th>Package Name</th>
+                        <th>{download.format === 'deb' ? 'Debian Package' : 'Package Name'}</th>
                         <th>Action</th>
                         <th>Size</th>
                       </tr>

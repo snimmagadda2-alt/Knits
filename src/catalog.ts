@@ -2,7 +2,7 @@ export interface CatalogItem {
   id: string;
   name: string;
   file: string;
-  format: 'pkg' | 'dmg';
+  format: 'pkg' | 'dmg' | 'deb';
   blurb: string;
   version: string;
   category: string;
@@ -15,6 +15,15 @@ export const CATALOG: CatalogItem[] = [
     file: 'knits-clock.pkg',
     format: 'pkg',
     blurb: 'A world clock with a live digital face and four time zones.',
+    version: '1.2',
+    category: 'Utilities',
+  },
+  {
+    id: 'clock',
+    name: 'Clock (deb)',
+    file: 'knits-clock.deb',
+    format: 'deb',
+    blurb: 'The same Clock, shipped as a Debian package.',
     version: '1.2',
     category: 'Utilities',
   },

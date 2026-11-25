@@ -38,6 +38,32 @@ export function AppIcon({ id, size = 52 }: { id: IconId; size?: number }) {
           </g>
         </svg>
       );
+    case 'google':
+      return (
+        <svg {...props}>
+          <rect width="64" height="64" rx="15" fill="#fff" />
+          <rect x="1" y="1" width="62" height="62" rx="14" fill="none" stroke="rgba(0,0,0,0.12)" />
+          <defs>
+            <linearGradient id="g-brand" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#4285f4" />
+              <stop offset="0.45" stopColor="#ea4335" />
+              <stop offset="0.72" stopColor="#fbbc05" />
+              <stop offset="1" stopColor="#34a853" />
+            </linearGradient>
+          </defs>
+          <text
+            x="32"
+            y="46"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontSize="42"
+            fontWeight="700"
+            fill="url(#g-brand)"
+          >
+            G
+          </text>
+        </svg>
+      );
     case 'safari':
       return (
         <svg {...props}>

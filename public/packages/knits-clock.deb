@@ -1,0 +1,16 @@
+{
+  "format": "knits-deb",
+  "id": "clock",
+  "name": "Clock",
+  "version": "1.2",
+  "publisher": "Knits Labs",
+  "kind": "clock",
+  "payload": {
+    "zones": [
+      { "label": "Local", "zone": null },
+      { "label": "London", "zone": "Europe/London" },
+      { "label": "Tokyo", "zone": "Asia/Tokyo" },
+      { "label": "New York", "zone": "America/New_York" }
+    ]
+  }
+}

@@ -12,6 +12,7 @@ import { Spotlight } from '../components/Spotlight';
 import { Glyph } from '../components/Icon';
 import { Window } from '../components/Window';
 import { Finder } from '../apps/Finder';
+import { Google } from '../apps/Google';
 import { Safari } from '../apps/Safari';
 import { Store } from '../apps/Store';
 import { Terminal } from '../apps/Terminal';
@@ -48,12 +49,14 @@ function AppSurface({ app, onClose, onOpen }: { app: AppId; onClose: () => void;
   switch (app) {
     case 'finder':
       return <Finder />;
+    case 'google':
+      return <Google />;
     case 'safari':
       return <Safari />;
     case 'store':
       return <Store onOpen={onOpen} />;
     case 'terminal':
-      return <Terminal onClose={onClose} />;
+      return <Terminal onClose={onClose} onOpen={onOpen} />;
     case 'notes':
       return <Notes />;
     case 'calculator':
@@ -77,9 +80,10 @@ export default function Desktop() {
     eject,
   } = useLibrary();
   const wm = useWindows();
-  // First run has no account yet: the welcome screen asks for a name and a password.
+  // The account belongs to the installed app and the ISO. The website demo opens
+  // straight into the desktop: visitors should not have to invent a password to look.
   const [account, setAccount] = useState<Account | null>(readAccount);
-  const [locked, setLocked] = useState(true);
+  const [locked, setLocked] = useState(IS_APP);
   const [spotlight, setSpotlight] = useState(false);
   const [updates, setUpdates] = useState<{ since: string | null } | null>(null);
   const [selfUpdate, setSelfUpdate] = useState<{ phase: 'working' | 'failed'; version: string } | null>(null);
@@ -138,18 +142,19 @@ export default function Desktop() {
     }
   };
 
-  if (!account) {
-    return <Welcome wallpaper={wallpaper.background} onCreated={setAccount} />;
-  }
-
-  if (locked) {
-    return (
-      <LoginScreen
-        account={account}
-        wallpaper={wallpaper.background}
-        onUnlock={() => setLocked(false)}
-      />
-    );
+  if (IS_APP) {
+    if (!account) {
+      return <Welcome wallpaper={wallpaper.background} onCreated={setAccount} />;
+    }
+    if (locked) {
+      return (
+        <LoginScreen
+          account={account}
+          wallpaper={wallpaper.background}
+          onUnlock={() => setLocked(false)}
+        />
+      );
+    }
   }
 
   const running = new Set(wm.wins.map((win) => win.app));
@@ -168,11 +173,13 @@ export default function Desktop() {
         }
         onOpenApp={(id) => wm.openApp(id)}
         onSpotlight={() => setSpotlight(true)}
-        onLock={() => setLocked(true)}
+        onLock={() => {
+          if (IS_APP) setLocked(true);
+        }}
         onWhatsNew={() => setUpdates({ since: readSeenVersion() })}
         onRestart={() => {
           wm.closeAll();
-          setLocked(true);
+          setLocked(IS_APP);
         }}
         onCloseActive={() => activeWin && wm.close(activeWin.id)}
       />

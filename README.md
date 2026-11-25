@@ -14,12 +14,21 @@ not run macOS binaries and does not ship or require Apple firmware.
 - **Menu bar** — Apple-style menu, per-app menu, status items and a live clock.
 - **Dock** — hover magnification, running indicators, window restore.
 - **Spotlight** — `⌘Space` / `Ctrl+Space`, searches apps and files.
-- **Apps** — Finder over a virtual disk with quick-look, Terminal with a working
-  shell subset (`ls`, `cd`, `cat`, `neofetch`, …), Notes that persist, a working
-  Calculator, and System Settings for appearance, wallpaper and accent colour.
-- **Welcome and sign-in** — the first run asks for your name, then a password, and saves
-  the account on the device. The login screen asks for that password from then on, and
-  so does locking the desktop.
+- **Apps** — Finder over a virtual disk with quick-look and a right-click menu,
+  Terminal running a Debian-style shell, Notes that persist, a working Calculator, and
+  System Settings for appearance, wallpaper and accent colour.
+- **Google** — an app with its own dock icon: the search page, and results that open in
+  the same window so you can keep following links.
+- **Terminal** — `ls`, `cd`, `cat`, `grep`, `find`, `tree`, `mkdir`, `rm`, `cp`, `mv`,
+  `apt`, `dpkg`, `systemctl`, `ps`, `free`, `df`, `ip`, `ping`, `curl`, `neofetch` and
+  about sixty more Debian-style commands, with pipes (`ls | grep .deb | sort`).
+- **Debian packages** — a `.deb` in Finder installs inside Knits: right-click →
+  **Install** (or `dpkg -i file.deb`), and the macOS-style wizard runs through welcome,
+  licence, destination, install type, password and progress.
+- **Welcome and sign-in** — the installed app and the ISO ask for your name, then a
+  password, and save the account on the device; the login screen asks for that password
+  from then on, and so does locking the desktop. The website demo skips all of it and
+  opens straight into the desktop.
 - **Lock screen** — the account's password, with the name and avatar you set up.
 - **Update log** — the first run of a new version shows what changed; close it with the
   X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
@@ -172,6 +181,8 @@ src/
   prefs.tsx            persisted appearance/wallpaper/accent
   vfs.ts               virtual file system shared by Finder and Terminal
   account.ts           the local account: name and salted password hash
+  shell.ts             Debian-style shell used by Terminal
+api/read.js            reader endpoint that lets Safari and Google open any site
 packaging/             Debian control files, launcher, icon, server
 packaging/iso/         live-build config for the bootable Debian image
 scripts/build-deb.sh   dpkg-deb build
@@ -229,12 +240,14 @@ file there and it becomes downloadable too. Installs are stored under `knits.app
 
 ## The reader service
 
-Browsers cannot fetch most cross-origin pages, so Safari's Reader mode uses
-`/api/read` on the deployed Knits site (`deploy/worker.js`). It fetches one http(s) URL,
-refuses loopback and private addresses, caps the body at 2 MB and returns it with
-`access-control-allow-origin: *`. The app tries a direct fetch first (fine for
-CORS-friendly sites) and falls back to that endpoint. The origin lives in
-`src/reader.ts`; if you deploy the site somewhere else, update it there.
+Browsers cannot fetch most cross-origin pages, so Safari's Reader mode and the Google
+app use `/api/read` on the deployed Knits site (`api/read.js`, a Vercel function; the
+same handler lives in `deploy/worker.js` for the Freebuff deployment). It fetches one
+http(s) URL, refuses loopback and private addresses (also across redirects), caps the
+body at 2 MB and returns it with `access-control-allow-origin: *`. The app tries a
+direct fetch first (fine for CORS-friendly sites) and falls back to that endpoint, which
+is what lets it open sites that block frames. The origin lives in `src/reader.ts`; if
+you deploy the site somewhere else, update it there.
 
 ## Version and release notes
 

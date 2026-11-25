@@ -24,6 +24,10 @@ const FEATURES = [
     body: 'Light and dark appearance, three wallpapers and six accent colours, all remembered locally.',
   },
   {
+    title: 'Google, built in',
+    body: 'A real Google app sits in the dock: search, open a result, and read any site inside its own window.',
+  },
+  {
     title: 'Offline by design',
     body: 'The installed package serves its own files from 127.0.0.1. No accounts, no telemetry, no network calls.',
   },
@@ -184,6 +188,13 @@ knits`}</code>
           <p className="install-hint">
             {ISO_NAME} · about 1.2 GB · boots on UEFI and BIOS · built by GitHub Actions from this repository
           </p>
+
+          <img
+            className="iso-shot"
+            src={`${import.meta.env.BASE_URL}images/iso-boot.jpg`}
+            alt="The Knits live ISO running on a laptop, showing the menu bar, dock and wallpaper"
+            loading="lazy"
+          />
 
           <div className="install-grid">
             <div className="install-card">

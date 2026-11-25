@@ -68,17 +68,41 @@ ribbon as the wallpaper.`,
   ]),
   folder('Downloads', [
     note(
-      'knits_1.0.0_all.deb',
-      `Debian package, 1.0.0, architecture all.
+      'knits-clock_1.2_all.deb',
+      `{
+  "format": "knits-deb",
+  "id": "clock",
+  "name": "Clock",
+  "version": "1.2",
+  "publisher": "Knits Labs",
+  "kind": "clock",
+  "payload": {
+    "zones": [
+      { "label": "Local", "zone": null },
+      { "label": "London", "zone": "Europe/London" },
+      { "label": "Tokyo", "zone": "Asia/Tokyo" },
+      { "label": "New York", "zone": "America/New_York" }
+    ]
+  }
+}`,
+      '18 KB',
+    ),
+    note(
+      'install-deb.txt',
+      `INSTALLING A .DEB INSIDE KNITS
 
-Install it with:
+1. Right-click the .deb file in Finder.
+2. Choose Install.
+3. The Knits installer opens: Welcome, Licence, Destination, Installation Type,
+   Password, then a progress bar and the summary — the same steps macOS uses.
 
-  sudo apt install ./knits_1.0.0_all.deb
+The .deb format here is a Knits package with a Debian filename. Nothing is
+installed on the real computer, and the app appears in the Dock when it is done.
 
-This is the same bundle you are running right now: the package ships the
-web app, a launcher and a desktop entry, and serves everything from
-127.0.0.1 when you open it.`,
-      '184 KB',
+From the terminal the same thing is:
+
+  dpkg -i knits-clock_1.2_all.deb`,
+      '512 B',
     ),
   ]),
   folder('Pictures', [

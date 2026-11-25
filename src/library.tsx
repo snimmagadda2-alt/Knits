@@ -14,7 +14,7 @@ export interface AppletSpec {
   payload: Record<string, unknown>;
 }
 
-export type PackageFormat = 'pkg' | 'dmg' | 'unknown';
+export type PackageFormat = 'pkg' | 'dmg' | 'deb' | 'unknown';
 
 export interface Download {
   id: string;
@@ -56,6 +56,8 @@ interface LibraryValue {
   installFromUrl: (url: string) => Promise<InstalledApp | null>;
   uninstall: (id: string) => void;
   open: (download: Download) => void;
+  /** Opens an installer for a file that lives in the virtual disk (Finder, dpkg -i). */
+  openPackage: (fileName: string, source: string) => Download;
   close: () => void;
   remove: (id: string) => void;
   clearDownloads: () => void;
@@ -118,6 +120,13 @@ function parsePackage(source: string, fileName: string, url: string, size: numbe
     return app ? { ...base, format: 'pkg', app } : { ...base, error: 'The package is damaged: its app could not be read.' };
   }
 
+  if (raw.format === 'knits-deb') {
+    const app = readApplet(raw);
+    return app
+      ? { ...base, format: 'deb', app }
+      : { ...base, error: 'The Debian package is damaged: its app could not be read.' };
+  }
+
   if (raw.format === 'knits-dmg') {
     const app = readApplet(raw.app);
     return app
@@ -125,7 +134,7 @@ function parsePackage(source: string, fileName: string, url: string, size: numbe
       : { ...base, error: 'The disk image is damaged: its app could not be read.' };
   }
 
-  return { ...base, error: 'Only Knits .pkg and .dmg files can be installed.' };
+  return { ...base, error: 'Only Knits .pkg, .dmg and .deb files can be installed.' };
 }
 
 const LibraryContext = createContext<LibraryValue | null>(null);
@@ -241,6 +250,28 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setActive(entry);
   }, []);
 
+  const openPackage = useCallback((fileName: string, source: string) => {
+    const entry = parsePackage(source, fileName, '', new Blob([source]).size);
+    if (!entry.app) {
+      setOpenVolume(null);
+      setActive(entry);
+      return entry;
+    }
+    if (entry.format === 'dmg') {
+      setVolumes((prev) =>
+        prev.some((volume) => volume.id === entry.id)
+          ? prev
+          : [...prev, { id: entry.id, name: entry.volume ?? entry.app!.name, app: entry.app!, download: entry }],
+      );
+      setOpenVolume(entry.id);
+      setActive(null);
+      return entry;
+    }
+    setOpenVolume(null);
+    setActive(entry);
+    return entry;
+  }, []);
+
   const close = useCallback(() => setActive(null), []);
 
   const eject = useCallback((id: string) => {
@@ -264,6 +295,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       installFromUrl,
       uninstall,
       open,
+      openPackage,
       close,
       remove,
       clearDownloads,
@@ -282,6 +314,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       installFromUrl,
       uninstall,
       open,
+      openPackage,
       close,
       remove,
       clearDownloads,

@@ -7,6 +7,18 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.10.0',
+    date: '25 November 2026',
+    changes: [
+      'Google is an app of its own: a place in the dock, its own search page, and results that open inside the window so you can keep following links.',
+      'The welcome screen and the password are for the installed app and the ISO only. The website demo opens straight into the desktop, with no account to invent.',
+      'Knits installs .deb files now: right-click one in Finder and choose Install, or run dpkg -i, and the same wizard macOS uses walks through welcome, licence, destination, password and progress.',
+      'Safari and Google can open any site: pages are read through /api/read on the Knits site, so sites that block frames or cross-origin reads still work.',
+      'The Terminal is a Debian-style shell — ls, cd, cat, grep, find, chmod, apt, dpkg, systemctl, ps, free, df, ip, ping, curl and about sixty more, with pipes.',
+      'The live ISO section has a picture of the booted system, and the site layout no longer breaks on small screens.',
+    ],
+  },
+  {
     version: '1.9.0',
     date: '25 November 2026',
     changes: [

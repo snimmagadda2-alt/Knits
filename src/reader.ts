@@ -1,9 +1,11 @@
 /**
- * Safari's reader. Browsers cannot read most cross-origin pages directly, so the first
- * attempt is a direct fetch (works for CORS-friendly sites) and the second goes through
- * the reader endpoint deployed with the Knits site.
+ * Safari's and Google's reader. Browsers cannot read most cross-origin pages directly,
+ * so the first attempt is a direct fetch (works for CORS-friendly sites) and the second
+ * goes through /api/read on the Knits site (api/read.js), which fetches the page
+ * server-side and hands back the HTML. That is what lets Knits open any site, including
+ * the ones that refuse to be framed.
  */
-const READER_ORIGIN = 'https://knits-3qflim-preview.freebuff.site';
+const READER_ORIGIN = 'https://knits-nine.vercel.app';
 
 export interface Span {
   text: string;

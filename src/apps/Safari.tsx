@@ -15,7 +15,7 @@ const FAVORITES = [
   { title: 'Knits repo', url: 'https://github.com/snimmagadda2-alt/Knits' },
 ];
 
-const isPackageUrl = (url: string) => /\.(pkg|dmg)(?:$|[?#])/i.test(url);
+const isPackageUrl = (url: string) => /\.(pkg|dmg|deb)(?:$|[?#])/i.test(url);
 
 function normalize(raw: string): string | null {
   const value = raw.trim();
@@ -350,7 +350,8 @@ export function Safari() {
               <button className="safari-download-open" onClick={() => open(item)}>
                 <span className="safari-download-name">{item.fileName}</span>
                 <span className="safari-download-meta">
-                  {item.error ?? `${item.format === 'dmg' ? 'Disk image' : 'Package'} · ${formatSize(item.size)}`}
+                  {item.error ??
+                    `${item.format === 'dmg' ? 'Disk image' : item.format === 'deb' ? 'Debian package' : 'Package'} · ${formatSize(item.size)}`}
                 </span>
               </button>
               <button className="safari-icon-btn" onClick={() => remove(item.id)} aria-label={`Remove ${item.fileName}`}>
