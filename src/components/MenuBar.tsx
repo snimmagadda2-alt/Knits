@@ -14,6 +14,7 @@ interface Props {
   onSpotlight: () => void;
   onLock: () => void;
   onRestart: () => void;
+  onWhatsNew: () => void;
   onCloseActive: () => void;
 }
 
@@ -25,7 +26,7 @@ function clockText(now: Date) {
   return `${weekday} ${month} ${day}  ${time}`;
 }
 
-export function MenuBar({ activeApp, onOpenApp, onSpotlight, onLock, onRestart, onCloseActive }: Props) {
+export function MenuBar({ activeApp, onOpenApp, onSpotlight, onLock, onRestart, onCloseActive, onWhatsNew }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
   const barRef = useRef<HTMLDivElement>(null);
@@ -84,6 +85,7 @@ export function MenuBar({ activeApp, onOpenApp, onSpotlight, onLock, onRestart, 
       <div className="mb-left">
         {renderMenu('apple', <Glyph name="apple" size={15} />, [
           { label: 'About This Knits', action: () => onOpenApp('about') },
+          { label: "What's New in Knits", action: onWhatsNew },
           { label: 'System Settings…', action: () => onOpenApp('settings') },
           { label: '', divider: true },
           { label: 'Sleep', action: onLock },

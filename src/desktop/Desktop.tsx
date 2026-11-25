@@ -12,7 +12,19 @@ import { Calculator } from '../apps/Calculator';
 import { Settings } from '../apps/Settings';
 import { About } from '../apps/About';
 import { LoginScreen } from './LoginScreen';
+import { UpdateLog } from './UpdateLog';
 import { useWindows } from './useWindows';
+
+const SEEN_KEY = 'knits.seenVersion';
+
+/** The version this browser last ran, or null when Knits has never run here (or storage is unavailable). */
+function readSeenVersion(): string | null {
+  try {
+    return localStorage.getItem(SEEN_KEY);
+  } catch {
+    return null;
+  }
+}
 
 function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
   switch (app) {
@@ -36,6 +48,7 @@ export default function Desktop() {
   const wm = useWindows();
   const [locked, setLocked] = useState(true);
   const [spotlight, setSpotlight] = useState(false);
+  const [updates, setUpdates] = useState<{ since: string | null } | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -48,6 +61,22 @@ export default function Desktop() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Every time a new build runs, show what changed. Dismissing the log records the version.
+  useEffect(() => {
+    if (locked) return;
+    const seen = readSeenVersion();
+    if (seen !== __VERSION__) setUpdates({ since: seen });
+  }, [locked]);
+
+  const closeUpdates = () => {
+    setUpdates(null);
+    try {
+      localStorage.setItem(SEEN_KEY, __VERSION__);
+    } catch {
+      /* storage unavailable: the log will appear again next launch */
+    }
+  };
 
   if (locked) {
     return <LoginScreen wallpaper={wallpaper.background} onUnlock={() => setLocked(false)} />;
@@ -63,6 +92,7 @@ export default function Desktop() {
         onOpenApp={(id) => wm.openApp(id)}
         onSpotlight={() => setSpotlight(true)}
         onLock={() => setLocked(true)}
+        onWhatsNew={() => setUpdates({ since: readSeenVersion() })}
         onRestart={() => {
           wm.closeAll();
           setLocked(true);
@@ -94,6 +124,8 @@ export default function Desktop() {
       <Dock runningApps={running} activeApp={wm.activeApp} onOpen={(id) => wm.openApp(id)} />
 
       {spotlight && <Spotlight onClose={() => setSpotlight(false)} onOpenApp={(id) => wm.openApp(id)} />}
+
+      {updates && <UpdateLog since={updates.since} onClose={closeUpdates} />}
     </div>
   );
 }

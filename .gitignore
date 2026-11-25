@@ -1,7 +1,7 @@
 node_modules/
 dist/
-public/downloads/*.deb
 *.log
+.dev.pid
 .DS_Store
 __pycache__/
 *.pyc

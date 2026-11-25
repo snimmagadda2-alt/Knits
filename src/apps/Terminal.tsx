@@ -34,7 +34,7 @@ const HELP = `Knits shell — supported commands
 
 const NEOFETCH = `        .:://///::.         knits@studio
       ://+++++++++++//:      ------------
-     //+++++::::+++++//      OS: Knits 1.0.0 (Debian-based)
+     //+++++::::+++++//      OS: Knits ${__VERSION__} (Debian-based)
     //++++:      :++++//     Host: Knits Studio
    //++++:  .--.  :++++//    Shell: knsh 1.0
    //++++:  '--'  :++++//    WM: Knits Window Server

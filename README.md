@@ -18,6 +18,8 @@ not run macOS binaries and does not ship or require Apple firmware.
   shell subset (`ls`, `cd`, `cat`, `neofetch`, …), Notes that persist, a working
   Calculator, and System Settings for appearance, wallpaper and accent colour.
 - **Lock screen** — click to unlock (any password).
+- **Update log** — the first run of a new version shows what changed; close it with the
+  X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
 
 Preferences, notes and wallpaper choices are stored in `localStorage`. Nothing is
 sent over the network.
@@ -38,15 +40,18 @@ npm run build        # web bundle + .deb, both written under dist/
 ```
 
 `dist/web/` is the deployable static site. It includes the package at
-`dist/web/downloads/knits_<version>_all.deb`, so the download link on the page
-works from a single deployment.
+`dist/web/downloads/knits_<version>_all.deb` and at the stable alias
+`dist/web/downloads/knits_all.deb`, so the download links on the page work from a
+single deployment. `scripts/build-deb.sh` also refreshes `public/downloads/`, which
+is committed — that way hosts without `dpkg-deb` (Vercel, any static host) still
+serve a real package.
 
 ## Build and install the package
 
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.0.0_all.deb
+sudo apt install ./dist/knits_1.1.0_all.deb
 knits
 ```
 
@@ -87,8 +92,33 @@ scripts/build-deb.sh   dpkg-deb build
 install.sh             one-command install from this repository
 ```
 
+## Deploy the site
+
+`vercel.json` builds the static site from this repository:
+
+- install: `npm ci`
+- build: `npm run build:web` (no `dpkg-deb` needed)
+- output: `dist/web`
+
+Because the package at `public/downloads/` is committed, the download buttons work on
+Vercel (or any static host) with no extra build step.
+
+## Version and release notes
+
+Bump `version` in `package.json`, then add a matching entry at the top of
+`src/changelog.ts` and rebuild the package. The desktop compares the running version
+against the one stored in `localStorage` and opens the update log with the new notes
+the first time a build runs.
+
+```bash
+npm version 1.2.0 --no-git-tag-version   # bump
+# edit src/changelog.ts, then:
+npm run build                            # bundle + fresh .deb in public/downloads/
+```
+
 ## Notes
 
 - Requires Node.js 20+ to build. `dpkg-deb` (from `dpkg-dev`) is needed for `npm run build`.
-- The `.deb` and `dist/` are generated artifacts and are not committed.
+- `dist/` is generated. `public/downloads/*.deb` is committed on purpose so static
+  hosting can serve the package without the Debian toolchain.
 - Knits is not affiliated with Apple.

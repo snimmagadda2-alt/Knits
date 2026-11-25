@@ -1343,6 +1343,107 @@ html[data-theme="light"] .dock-sep {
   color: var(--text-dim);
 }
 
+/* ---------- update log ---------- */
+
+.whatsnew-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9900;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.whatsnew {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 92vw);
+  max-height: min(78vh, 640px);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--glass-strong);
+  border: 1px solid var(--stroke);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+
+.whatsnew-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 18px 14px 20px;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.whatsnew-head h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.whatsnew-head p {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.whatsnew-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border-radius: 50%;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  color: var(--text-dim);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.whatsnew-x:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+.whatsnew-body {
+  padding: 4px 20px 18px;
+  overflow-y: auto;
+}
+
+.whatsnew-release h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 14px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.whatsnew-release h3 span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.whatsnew-release ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.whatsnew-release li {
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
 /* ---------- landing ---------- */
 
 .landing {

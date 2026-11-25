@@ -49,9 +49,13 @@ mkdir -p "$ROOT/dist" "$ROOT/public/downloads"
 dpkg-deb --root-owner-group -Zxz --build "$PKG" "$OUT" >/dev/null
 
 # Keep the downloadable copy next to the site so the page and the package ship together.
+# The stable knits_all.deb name is what the download buttons link to, so a version bump
+# never leaves the page pointing at a file that is not there.
 cp -f "$OUT" "$ROOT/public/downloads/$NAME.deb"
+cp -f "$OUT" "$ROOT/public/downloads/knits_all.deb"
 mkdir -p "$ROOT/dist/web/downloads"
 cp -f "$OUT" "$ROOT/dist/web/downloads/$NAME.deb"
+cp -f "$OUT" "$ROOT/dist/web/downloads/knits_all.deb"
 
 echo "build-deb: $OUT"
 echo "build-deb: $(du -h "$OUT" | cut -f1) — $(dpkg-deb -f "$OUT" Package) $(dpkg-deb -f "$OUT" Version) ($(dpkg-deb -f "$OUT" Architecture))"

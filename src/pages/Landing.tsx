@@ -1,7 +1,9 @@
 import { APPS } from '../apps';
 import { AppIcon } from '../components/Icon';
 
-const DEB = `./downloads/knits_${__VERSION__}_all.deb`;
+// Stable path: scripts/build-deb.sh keeps knits_all.deb pointed at the newest build.
+const DEB = `${import.meta.env.BASE_URL}downloads/knits_all.deb`;
+const DEB_NAME = `knits_${__VERSION__}_all.deb`;
 const REPO = 'https://github.com/snimmagadda2-alt/Knits';
 
 const FEATURES = [
@@ -36,7 +38,7 @@ export default function Landing() {
           <a href="#install">Install</a>
           <a href="#/desktop">Demo</a>
         </nav>
-        <a className="btn btn-small" href={DEB} download>
+        <a className="btn btn-small" href={DEB} download={DEB_NAME}>
           Download .deb
         </a>
       </header>
@@ -55,7 +57,7 @@ export default function Landing() {
               Debian, Ubuntu, Mint or Pop!_OS device. Real windows, a real dock, a working Finder and Terminal.
             </p>
             <div className="hero-actions">
-              <a className="btn" href={DEB} download>
+              <a className="btn" href={DEB} download={DEB_NAME}>
                 Download .deb
               </a>
               <a className="btn btn-ghost" href="#/desktop">
