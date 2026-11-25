@@ -92,8 +92,11 @@ if ! (cd "$WORK" && lb build) 2>&1 | tee "$LOG"; then
   # Annotations are capped at ten, so report the lines that name the failure rather
   # than the stage markers that follow it.
   echo "::error::live-build failed. Key lines from build.log:"
-  grep -a -i -E '(^E:|error|failed|cannot|not found|unable|no space)' "$LOG" |
+  grep -a -i -E '(^E:|error|failed|cannot|not found|unable|no space|depends|conflict)' "$LOG" |
     tail -n 8 | sed 's/\r//g; s/^/::error::/' || true
+  # One annotation with the raw tail: the conflict apt reports is spread over several
+  # lines and the filtered view above loses it.
+  printf '::error::build.log tail: %s\n' "$(tail -n 60 "$LOG" | tr -d '\r' | tr '\n' '~' | cut -c1-5000)"
   echo "::error::bootstrap: $(command -v debootstrap || echo 'debootstrap missing') · $(command -v cdebootstrap || echo 'cdebootstrap missing')"
   echo "::error::gpg: $(command -v gpgv || echo 'gpgv missing') · $(command -v gpg || echo 'gpg missing')"
   echo "::error::disk: $(df -h . | tail -n 1)"
