@@ -64,6 +64,12 @@ single deployment. `scripts/build-deb.sh` also refreshes `public/downloads/`, wh
 is committed — that way hosts without `dpkg-deb` (Vercel, any static host) still
 serve a real package.
 
+`npm run build:web` is the whole site build, and it also publishes the update feed:
+`scripts/build-feed.mjs` writes `dist/web/version.json`, the app bundle at
+`dist/web/downloads/knits_<version>_web.tar.gz` and `dist/web/latest.json` beside the
+page. It is plain Node — no `dpkg-deb`, no `tar` binary — so the same command works on
+Vercel, on any static host, and locally.
+
 ## Build and install the package
 
 ```bash
@@ -98,18 +104,19 @@ closes.
 
 An installed copy updates itself. On launch the app asks its local server
 (`GET /api/update`) what has been published at
-`https://knits-3qflim-preview.freebuff.site/latest.json`. If the manifest names a
+`https://knits-nine.vercel.app/latest.json` — the deployed site, which serves the feed
+every build publishes. If the manifest names a
 newer version, it downloads that bundle, checks its SHA-256, unpacks it into
 `~/.local/share/knits/web` and reloads into it. The launcher serves that overlay
 before `/opt/knits/web`, so an update needs no root, no password prompt and no
 reinstall — your files, installed apps and settings stay where they are.
 `System Settings › Software Update` runs the same check by hand.
 
-`npm run build` writes `dist/web/latest.json` and
-`dist/web/downloads/knits_<version>_web.tar.gz` beside the package. Deploy
-`dist/web` and every install picks the new build up on its next launch. Point a
-build at another channel with
-`KNITS_UPDATE_URL=https://example.com/latest.json knits`.
+`npm run build:web` writes `dist/web/latest.json` and
+`dist/web/downloads/knits_<version>_web.tar.gz` beside the page, so deploying
+`dist/web` is all it takes: every install picks the new build up on its next launch.
+The channel is one constant in `packaging/knits-serve.py`; point a single install at
+another one with `KNITS_UPDATE_URL=https://example.com/latest.json knits`.
 
 The updater accepts only HTTPS downloads (plain HTTP is allowed for a loopback
 test manifest), refuses archives that would unpack outside the overlay, and
@@ -128,6 +135,7 @@ src/
   vfs.ts               virtual file system shared by Finder and Terminal
 packaging/             Debian control files, launcher, icon, server
 scripts/build-deb.sh   dpkg-deb build
+scripts/build-feed.mjs update feed: version.json, web bundle, latest.json
 install.sh             one-command install from this repository
 ```
 
@@ -139,8 +147,14 @@ install.sh             one-command install from this repository
 - build: `npm run build:web` (no `dpkg-deb` needed)
 - output: `dist/web`
 
-Because the package at `public/downloads/` is committed, the download buttons work on
-Vercel (or any static host) with no extra build step.
+That build publishes the update feed as well as the site, so a deployment is what makes
+a release reach installed copies. Because the package at `public/downloads/` is
+committed, the download buttons work on Vercel (or any static host) with no extra build
+step.
+
+If the site moves to another domain, change the default in
+`packaging/knits-serve.py` (and `src/reader.ts` for Safari's reader service) so
+installs poll the new home.
 
 Safari, the Wi-Fi switch and the jelly window animations are gated on the app build
 (`src/environment.ts`): they appear when Knits is served from `127.0.0.1` by the
@@ -195,7 +209,9 @@ npm run build                            # bundle + fresh .deb in public/downloa
 
 ## Notes
 
-- Requires Node.js 20+ to build. `dpkg-deb` (from `dpkg-dev`) is needed for `npm run build`.
+- Requires Node.js 20+ to build. `dpkg-deb` (from `dpkg-dev`) is needed only for the
+  `.deb` (`npm run build`, `npm run deb`); `npm run build:web` and the update feed need
+  nothing but Node.
 - `dist/` is generated. `public/downloads/*.deb` is committed on purpose so static
   hosting can serve the package without the Debian toolchain.
 - Knits is not affiliated with Apple.

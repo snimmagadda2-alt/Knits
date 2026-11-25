@@ -7,6 +7,15 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.8.0',
+    date: '25 November 2026',
+    changes: [
+      'The website build now publishes the update feed itself: every deployment serves latest.json and the bundle it names, without needing the Debian packaging tools.',
+      'Installed copies check the Knits website for new builds, so an update shipped on the site reaches them on their next launch.',
+      'A release is still only installed after its checksum matches, and still unpacks beside the app without a password.',
+    ],
+  },
+  {
     version: '1.7.0',
     date: '25 November 2026',
     changes: [

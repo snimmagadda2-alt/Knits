@@ -43,10 +43,11 @@ CONTENT_TYPES = {
     ".woff2": "font/woff2",
 }
 
-# Where the app looks for new builds. Override with KNITS_UPDATE_URL to point a
-# local build at a different channel.
+# Where the app looks for new builds: the deployed Knits site, which publishes
+# latest.json on every deployment. Override with KNITS_UPDATE_URL to point an install
+# at another channel.
 MANIFEST_URL = os.environ.get(
-    "KNITS_UPDATE_URL", "https://knits-3qflim-preview.freebuff.site/latest.json"
+    "KNITS_UPDATE_URL", "https://knits-nine.vercel.app/latest.json"
 )
 MAX_MANIFEST = 256 * 1024
 MAX_BUNDLE = 40 * 1024 * 1024

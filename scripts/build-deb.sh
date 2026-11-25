@@ -15,9 +15,11 @@ if [ ! -f "$ROOT/dist/web/index.html" ]; then
   exit 1
 fi
 
-# The app reads this to know which build it is running; the updater compares it with
-# latest.json before downloading anything.
-printf '{"version":"%s"}\n' "$VERSION" > "$ROOT/dist/web/version.json"
+# The app reads version.json to know which build it is running; the updater compares it
+# with latest.json before downloading anything. Both, and the bundle an update installs,
+# come from the same script the static site runs, so a package and a deployment cannot
+# disagree about what the newest build is.
+node "$ROOT/scripts/build-feed.mjs"
 
 if ! command -v dpkg-deb >/dev/null 2>&1; then
   echo "build-deb: dpkg-deb is required (apt install dpkg-dev)" >&2
@@ -67,22 +69,7 @@ cp -f "$OUT" "$ROOT/dist/web/downloads/knits_all.deb"
 echo "build-deb: $OUT"
 echo "build-deb: $(du -h "$OUT" | cut -f1) — $(dpkg-deb -f "$OUT" Package) $(dpkg-deb -f "$OUT" Version) ($(dpkg-deb -f "$OUT" Architecture))"
 
-# Publish a self-update bundle beside the package. The installed app downloads this
-# archive and unpacks it into the user's home, so an update needs no root and no
-# reinstall. latest.json is the manifest every install polls.
-mkdir -p "$ROOT/dist/web/downloads"
-BUNDLE="$ROOT/dist/web/downloads/knits_${VERSION}_web.tar.gz"
-tar -czf "$BUNDLE" -C "$ROOT/dist/web" --exclude=downloads .
-SHA="$(sha256sum "$BUNDLE" | cut -d' ' -f1)"
-BYTES="$(stat -c %s "$BUNDLE")"
-cat > "$ROOT/dist/web/latest.json" <<EOF
-{
-  "version": "$VERSION",
-  "bundle": "downloads/knits_${VERSION}_web.tar.gz",
-  "sha256": "$SHA",
-  "size": $BYTES
-}
-EOF
-
-echo "build-deb: $BUNDLE ($(du -h "$BUNDLE" | cut -f1), sha256 ${SHA:0:12}…)"
-echo "build-deb: dist/web/latest.json → $VERSION"
+# The update feed — latest.json and the bundle it names — was published at the top of
+# this script, before the package was built, so the bundle holds the app and never an
+# installer.
+echo "build-deb: dist/web/latest.json → $VERSION (deploy dist/web to publish it)"
