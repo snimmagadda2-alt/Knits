@@ -47,20 +47,22 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build
 
-      - name: Install live-build and the boot-loader toolchain
+      # Debian 12, not the Ubuntu runner: the image is Debian, and Ubuntu's live-build
+      # asks for the wrong suite from the Ubuntu archive and cannot read Debian's keyring.
+      - name: Build the ISO in Debian 12
         run: |
-          sudo apt-get update
-          # live-build recommends the pieces that write isolinux/grub onto the image;
-          # without them the build gets all the way to the end and then fails.
-          # Both bootstrap flavours: Ubuntu's live-build reaches for cdebootstrap.
-          # gpgv verifies the Debian Release file debootstrap downloads.
-          sudo apt-get install -y \
-            live-build debootstrap cdebootstrap gnupg gpgv squashfs-tools xorriso \
-            syslinux syslinux-common isolinux \
-            grub-pc-bin grub-efi-amd64-bin mtools dosfstools fakeroot
-
-      - name: Build the ISO
-        run: sudo env "PATH=$PATH" bash -x scripts/build-iso.sh
+          docker run --rm --privileged \
+            -v "$PWD:/build" -w /build \
+            debian:bookworm bash -lc '
+              set -euo pipefail
+              apt-get update
+              DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                live-build debootstrap squashfs-tools xorriso \
+                syslinux syslinux-common isolinux \
+                grub-pc-bin grub-efi-amd64-bin mtools dosfstools \
+                ca-certificates gnupg
+              bash scripts/build-iso.sh
+            '
 
       - name: Publish to the "iso" release
         env:
