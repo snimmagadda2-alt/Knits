@@ -109,7 +109,11 @@ BUILT="$WORK/live-image-amd64.hybrid.iso"
 
 mv -f "$BUILT" "dist/${NAME}.iso"
 cp -f "dist/${NAME}.iso" dist/knits-amd64.iso
-(cd dist && sha256sum "${NAME}.iso" > "${NAME}.iso.sha256")
+# Two checksum files, each naming its own file: the versioned one for the record and the
+# stable one next to the stable image the site links to.
+(cd dist &&
+  sha256sum "${NAME}.iso" > "${NAME}.iso.sha256" &&
+  sha256sum knits-amd64.iso > knits-amd64.iso.sha256)
 
 say "dist/${NAME}.iso ($(du -h "dist/${NAME}.iso" | cut -f1))"
 say "dist/knits-amd64.iso — the stable name the download button uses"
