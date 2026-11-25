@@ -70,6 +70,11 @@ say "configuring live-build (Debian 12, amd64)"
     --architectures amd64 \
     --distribution bookworm \
     --archive-areas main \
+    --mirror-bootstrap "http://deb.debian.org/debian" \
+    --mirror-chroot "http://deb.debian.org/debian" \
+    --mirror-chroot-security "http://security.debian.org/debian-security" \
+    --mirror-binary "http://deb.debian.org/debian" \
+    --mirror-binary-security "http://security.debian.org/debian-security" \
     --binary-images iso-hybrid \
     --bootappend-live "boot=live components hostname=knits quiet splash loglevel=3" \
     --debian-installer none \
