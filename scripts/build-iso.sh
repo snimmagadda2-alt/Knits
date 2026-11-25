@@ -84,8 +84,13 @@ LOG="$WORK/build.log"
 # Keep the log and turn its tail into workflow annotations (::error:: lines are public
 # on the run, so a failure is readable without admin access to the job log).
 if ! (cd "$WORK" && lb build) 2>&1 | tee "$LOG"; then
-  echo "::error::live-build failed. Last lines of build.log:"
-  tail -n 40 "$LOG" | sed 's/\r//g; s/^/::error::/'
+  # Annotations are capped at ten, so report the lines that name the failure rather
+  # than the stage markers that follow it.
+  echo "::error::live-build failed. Key lines from build.log:"
+  grep -a -i -E '(^E:|error|failed|cannot|not found|unable|no space)' "$LOG" |
+    tail -n 8 | sed 's/\r//g; s/^/::error::/' || true
+  echo "::error::bootstrap: $(command -v debootstrap || echo 'debootstrap missing') · $(command -v cdebootstrap || echo 'cdebootstrap missing')"
+  echo "::error::disk: $(df -h . | tail -n 1)"
   exit 1
 fi
 

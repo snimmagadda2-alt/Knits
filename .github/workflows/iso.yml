@@ -52,10 +52,11 @@ jobs:
           sudo apt-get update
           # live-build recommends the pieces that write isolinux/grub onto the image;
           # without them the build gets all the way to the end and then fails.
+          # Both bootstrap flavours: Ubuntu's live-build reaches for cdebootstrap.
           sudo apt-get install -y \
-            live-build debootstrap squashfs-tools xorriso \
+            live-build debootstrap cdebootstrap squashfs-tools xorriso \
             syslinux syslinux-common isolinux \
-            grub-pc-bin grub-efi-amd64-bin mtools dosfstools
+            grub-pc-bin grub-efi-amd64-bin mtools dosfstools fakeroot
 
       - name: Build the ISO
         run: sudo env "PATH=$PATH" bash -x scripts/build-iso.sh
