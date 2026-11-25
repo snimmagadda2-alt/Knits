@@ -7,6 +7,15 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.6.0',
+    date: '25 November 2026',
+    changes: [
+      'Knits 1.6.0 packages the Safari reader and Knits Store work into the installed app, so an updated copy reports the new version everywhere.',
+      'About This Knits, neofetch, the landing page, the package and this log all read the same version number.',
+      'Installed copies on an older build show this log the first time the new version runs.',
+    ],
+  },
+  {
     version: '1.5.0',
     date: '25 November 2026',
     changes: [

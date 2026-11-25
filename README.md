@@ -69,7 +69,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.5.0_all.deb
+sudo apt install ./dist/knits_1.6.0_all.deb
 knits
 ```
 
