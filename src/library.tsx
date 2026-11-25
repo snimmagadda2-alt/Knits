@@ -53,6 +53,8 @@ interface LibraryValue {
   eject: (id: string) => void;
   download: (url: string) => Promise<void>;
   install: (download: Download) => InstalledApp | null;
+  installFromUrl: (url: string) => Promise<InstalledApp | null>;
+  uninstall: (id: string) => void;
   open: (download: Download) => void;
   close: () => void;
   remove: (id: string) => void;
@@ -151,7 +153,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     }
   }, [downloads]);
 
-  const download = useCallback(async (url: string) => {
+  const fetchPackage = useCallback(async (url: string): Promise<Download | null> => {
     let fileName = 'package.pkg';
     try {
       fileName = decodeURIComponent(new URL(url, window.location.href).pathname.split('/').pop() || fileName);
@@ -165,29 +167,59 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const entry = parsePackage(source, fileName, url, new Blob([source]).size);
       setDownloads((prev) => [entry, ...prev.filter((item) => item.url !== url)].slice(0, 6));
+      return entry;
     } catch {
-      setDownloads((prev) =>
-        [
-          {
-            id: `${fileName}-${Date.now()}`,
-            fileName,
-            url,
-            size: 0,
-            format: 'unknown' as PackageFormat,
-            receivedAt: Date.now(),
-            error: 'Download failed. Check Wi-Fi and try again.',
-          },
-          ...prev.filter((item) => item.url !== url),
-        ].slice(0, 6),
-      );
+      return null;
     }
   }, []);
+
+  const download = useCallback(async (url: string) => {
+    let fileName = 'package.pkg';
+    try {
+      fileName = decodeURIComponent(new URL(url, window.location.href).pathname.split('/').pop() || fileName);
+    } catch {
+      /* keep the fallback name */
+    }
+
+    const entry = await fetchPackage(url);
+    if (entry) return;
+
+    setDownloads((prev) =>
+      [
+        {
+          id: `${fileName}-${Date.now()}`,
+          fileName,
+          url,
+          size: 0,
+          format: 'unknown' as PackageFormat,
+          receivedAt: Date.now(),
+          error: 'Download failed. Check Wi-Fi and try again.',
+        },
+        ...prev.filter((item) => item.url !== url),
+      ].slice(0, 6),
+    );
+  }, [fetchPackage]);
 
   const install = useCallback((entry: Download) => {
     if (!entry.app) return null;
     const record: InstalledApp = { ...entry.app, source: entry.fileName, installedAt: Date.now() };
     setApps((prev) => [...prev.filter((app) => app.id !== record.id), record]);
     return record;
+  }, []);
+
+  const installFromUrl = useCallback(
+    async (url: string) => {
+      const entry = await fetchPackage(url);
+      if (!entry?.app) return null;
+      const record: InstalledApp = { ...entry.app, source: entry.fileName, installedAt: Date.now() };
+      setApps((prev) => [...prev.filter((app) => app.id !== record.id), record]);
+      return record;
+    },
+    [fetchPackage],
+  );
+
+  const uninstall = useCallback((id: string) => {
+    setApps((prev) => prev.filter((app) => app.id !== id));
   }, []);
 
   const selectVolume = useCallback((id: string | null) => setOpenVolume(id), []);
@@ -229,13 +261,31 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       eject,
       download,
       install,
+      installFromUrl,
+      uninstall,
       open,
       close,
       remove,
       clearDownloads,
       installed: (id: string) => apps.find((app) => app.id === id),
     }),
-    [downloads, apps, active, volumes, openVolume, selectVolume, eject, download, install, open, close, remove, clearDownloads],
+    [
+      downloads,
+      apps,
+      active,
+      volumes,
+      openVolume,
+      selectVolume,
+      eject,
+      download,
+      install,
+      installFromUrl,
+      uninstall,
+      open,
+      close,
+      remove,
+      clearDownloads,
+    ],
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

@@ -1,28 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePrefs } from '../prefs';
 import { formatSize, useLibrary } from '../library';
+import { CATALOG, packageUrl } from '../catalog';
+import { readPage, type ReaderDoc, type Span } from '../reader';
 import { Glyph } from '../components/Icon';
 
-interface Favorite {
-  title: string;
-  url: string;
-}
+type Mode = 'reader' | 'web';
 
-const FAVORITES: Favorite[] = [
-  { title: 'Example', url: 'https://example.com' },
-  { title: 'Wikipedia', url: 'https://en.wikipedia.org' },
+const FAVORITES = [
+  { title: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/MacOS' },
   { title: 'Hacker News', url: 'https://news.ycombinator.com' },
-  { title: 'OpenStreetMap', url: 'https://www.openstreetmap.org' },
+  { title: 'Example', url: 'https://example.com' },
+  { title: 'Knits repo', url: 'https://github.com/snimmagadda2-alt/Knits' },
 ];
 
-/** Packages that ship with Knits, served next to the app itself. */
-const CATALOGUE = [
-  { name: 'Clock', file: 'knits-clock.pkg', format: 'pkg', blurb: 'World clock with a live digital face.' },
-  { name: 'Weather', file: 'knits-weather.pkg', format: 'pkg', blurb: 'Five day forecast for Knits Studio.' },
-  { name: 'Gallery', file: 'knits-gallery.dmg', format: 'dmg', blurb: 'Colour tiles, shipped as a disk image.' },
-];
-
-const packageUrl = (file: string) => new URL(`${import.meta.env.BASE_URL}packages/${file}`, window.location.href).href;
 const isPackageUrl = (url: string) => /\.(pkg|dmg)(?:$|[?#])/i.test(url);
 
 function normalize(raw: string): string | null {
@@ -30,7 +21,7 @@ function normalize(raw: string): string | null {
   if (!value) return null;
   if (/^https?:\/\//i.test(value)) return value;
   if (/^[\w-]+(\.[\w-]+)+([/?#].*)?$/.test(value)) return `https://${value}`;
-  return `https://html.duckduckgo.com/html/?q=${encodeURIComponent(value)}`;
+  return `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(value)}`;
 }
 
 function hostOf(url: string): string {
@@ -47,6 +38,9 @@ export function Safari() {
   const [stack, setStack] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
   const [field, setField] = useState('');
+  const [mode, setMode] = useState<Mode>('reader');
+  const [doc, setDoc] = useState<ReaderDoc | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [shelf, setShelf] = useState(true);
@@ -56,38 +50,83 @@ export function Safari() {
 
   useEffect(() => {
     setField(page ?? '');
-    setLoading(page !== null);
   }, [page]);
+
+  useEffect(() => {
+    if (!page) return;
+    if (mode === 'web') {
+      setDoc(null);
+      setError(null);
+      setLoading(true);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+    setDoc(null);
+
+    readPage(page, controller.signal)
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        setDoc(result);
+        setLoading(false);
+      })
+      .catch((reason: unknown) => {
+        if (controller.signal.aborted) return;
+        setError(reason instanceof Error ? reason.message : 'That page could not be read.');
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [page, mode, nonce]);
 
   const visit = (raw: string) => {
     if (!prefs.wifi) return;
     const url = normalize(raw);
     if (!url) return;
 
-    // A package is downloaded, not displayed.
     if (isPackageUrl(url)) {
       setShelf(true);
       void download(url);
       return;
     }
 
+    if (url === page) {
+      setNonce((value) => value + 1);
+      return;
+    }
+
     setStack((prev) => [...prev.slice(0, cursor + 1), url]);
     setCursor(cursor + 1);
-    setLoading(true);
   };
 
   const step = (delta: number) => {
     const next = cursor + delta;
     if (next < 0 || next >= stack.length) return;
     setCursor(next);
-    setLoading(true);
   };
 
   const reload = () => {
     if (!page) return;
-    setNonce((n) => n + 1);
-    setLoading(true);
+    if (mode === 'web') {
+      setLoading(true);
+      setNonce((value) => value + 1);
+      return;
+    }
+    setNonce((value) => value + 1);
   };
+
+  const renderSpans = (spans: Span[]) =>
+    spans.map((span, index) =>
+      span.href ? (
+        <button key={`${span.href}-${index}`} className="reader-link" onClick={() => visit(span.href!)}>
+          {span.text}
+        </button>
+      ) : (
+        <span key={index}>{span.text}</span>
+      ),
+    );
 
   const host = page ? hostOf(page) : '';
 
@@ -132,6 +171,23 @@ export function Safari() {
           )}
         </form>
 
+        <div className="safari-modes" role="group" aria-label="Page mode">
+          <button
+            className={`safari-mode${mode === 'reader' ? ' is-active' : ''}`}
+            onClick={() => setMode('reader')}
+            title="Reader: text and links, works on almost every site"
+          >
+            Reader
+          </button>
+          <button
+            className={`safari-mode${mode === 'web' ? ' is-active' : ''}`}
+            onClick={() => setMode('web')}
+            title="Web: the page in a frame, for sites that allow it"
+          >
+            Web
+          </button>
+        </div>
+
         {page && (
           <a className="safari-btn" href={page} target="_blank" rel="noreferrer" aria-label="Open in a new tab">
             <Glyph name="external" size={15} />
@@ -156,17 +212,7 @@ export function Safari() {
               Turn On Wi-Fi
             </button>
           </div>
-        ) : page ? (
-          <iframe
-            key={`${page}-${nonce}`}
-            className="safari-frame"
-            src={page}
-            title={host}
-            onLoad={() => setLoading(false)}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
+        ) : !page ? (
           <div className="safari-start">
             <h2>Favourites</h2>
             <div className="safari-favs">
@@ -181,8 +227,8 @@ export function Safari() {
 
             <h2>Knits Software</h2>
             <div className="safari-packages">
-              {CATALOGUE.map((item) => {
-                const done = installed(item.file.replace(/^knits-/, '').replace(/\.(pkg|dmg)$/, ''));
+              {CATALOG.map((item) => {
+                const done = installed(item.id);
                 return (
                   <button
                     key={item.file}
@@ -202,9 +248,82 @@ export function Safari() {
             </div>
 
             <p className="safari-hint">
-              Connected to {prefs.network}. Packages install inside Knits only — nothing is written to your real
-              computer. Sites that refuse to be embedded load blank; the arrow in the toolbar opens them in a real tab.
+              Reader shows the text and links of any page, which works where frames are blocked. Web mode shows the
+              real page when the site allows embedding. Connected to {prefs.network}.
             </p>
+          </div>
+        ) : mode === 'web' ? (
+          <iframe
+            key={`${page}-${nonce}`}
+            className="safari-frame"
+            src={page}
+            title={host}
+            onLoad={() => setLoading(false)}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            referrerPolicy="no-referrer"
+          />
+        ) : error ? (
+          <div className="safari-offline">
+            <Glyph name="doc" size={38} />
+            <h2>Safari cannot open this page</h2>
+            <p>{error}</p>
+            <div className="safari-error-actions">
+              <button className="btn btn-small" onClick={reload}>
+                Try Again
+              </button>
+              <a className="btn btn-small btn-ghost" href={page} target="_blank" rel="noreferrer">
+                Open in a Real Browser
+              </a>
+            </div>
+          </div>
+        ) : doc ? (
+          <article className="reader">
+            <header className="reader-head">
+              <span className="reader-host">{doc.host}</span>
+              <h1>{doc.title}</h1>
+            </header>
+            {doc.blocks.map((block, index) => {
+              if (block.kind === 'heading') {
+                return (
+                  <h3 key={index} className={`reader-heading level-${block.level}`}>
+                    {block.text}
+                  </h3>
+                );
+              }
+              if (block.kind === 'paragraph') {
+                return (
+                  <p key={index} className="reader-paragraph">
+                    {renderSpans(block.spans)}
+                  </p>
+                );
+              }
+              if (block.kind === 'list') {
+                return (
+                  <ul key={index} className="reader-list">
+                    {block.items.map((item, itemIndex) => (
+                      <li key={itemIndex}>{renderSpans(item)}</li>
+                    ))}
+                  </ul>
+                );
+              }
+              if (block.kind === 'quote') {
+                return (
+                  <blockquote key={index} className="reader-quote">
+                    {renderSpans(block.spans)}
+                  </blockquote>
+                );
+              }
+              return (
+                <pre key={index} className="reader-code">
+                  {block.text}
+                </pre>
+              );
+            })}
+          </article>
+        ) : (
+          <div className="safari-offline">
+            <Glyph name="reload" size={34} />
+            <h2>Reading {host}…</h2>
           </div>
         )}
       </div>
@@ -242,9 +361,7 @@ export function Safari() {
 
       <div className="safari-status">
         <span>{page ? host : 'Start Page'}</span>
-        <span>
-          {page ? (page.startsWith('https://') ? 'Secure' : 'Not secure') : `Wi-Fi ${prefs.wifi ? 'on' : 'off'}`}
-        </span>
+        <span>{page ? (mode === 'reader' ? 'Reader' : 'Web') : `Wi-Fi ${prefs.wifi ? 'on' : 'off'}`}</span>
       </div>
     </div>
   );

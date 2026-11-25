@@ -12,6 +12,32 @@ export function AppIcon({ id, size = 52 }: { id: IconId; size?: number }) {
   } as const;
 
   switch (id) {
+    case 'store':
+      return (
+        <svg {...props}>
+          <defs>
+            <linearGradient id="store" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#2b7bff" />
+              <stop offset="0.55" stopColor="#5b5cff" />
+              <stop offset="1" stopColor="#b45cff" />
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="15" fill="url(#store)" />
+          <rect x="1" y="1" width="62" height="62" rx="14" fill="none" stroke="rgba(255,255,255,0.2)" />
+          <path
+            d="M19.5 24.5h25L42 48H22z"
+            fill="rgba(255,255,255,0.18)"
+            stroke="#fff"
+            strokeWidth="2.6"
+            strokeLinejoin="round"
+          />
+          <path d="M26.5 24.5v-2a5.5 5.5 0 0 1 11 0v2" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
+          <g stroke="#fff" strokeWidth="2.2" strokeLinecap="round" opacity="0.95">
+            <path d="M27.5 32.5l7 7M34.5 32.5l-7 7" />
+            <path d="M27 43.5h10" />
+          </g>
+        </svg>
+      );
     case 'safari':
       return (
         <svg {...props}>

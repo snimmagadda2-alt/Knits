@@ -20,8 +20,12 @@ not run macOS binaries and does not ship or require Apple firmware.
 - **Lock screen** — click to unlock (any password).
 - **Update log** — the first run of a new version shows what changed; close it with the
   X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
-- **Safari** (installed app only) — address bar with search, back/forward, reload,
-  favourites, an offline page, and an escape hatch that opens a page in a real tab.
+- **Safari** (installed app only) — address bar with search, back/forward, reload and a
+  **Reader/Web** switch. Reader fetches a page through the Knits reader service and renders
+  its headings, text and links, so pages show even when the site blocks frames; Web shows
+  the page in a frame where the site allows it. Links inside a page open in place.
+- **Knits Store** (installed app only, preinstalled) — categories, search, one-click *Get*,
+  *Open* and *Uninstall* for the packages in `public/packages/`, with its own app logo.
 - **Packages** (installed app only) — Safari downloads `.pkg` and `.dmg` files into a
   Downloads shelf. A `.pkg` opens Installer, which follows the macOS steps: welcome,
   licence, destination, install type, password, progress and summary. A `.dmg` mounts on
@@ -65,7 +69,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.4.0_all.deb
+sudo apt install ./dist/knits_1.5.0_all.deb
 knits
 ```
 
@@ -145,6 +149,15 @@ A disk image uses `"format": "knits-dmg"`, a `volume` name and the same object u
 from `public/packages/` are listed in Safari's *Knits Software* section; add your own
 file there and it becomes downloadable too. Installs are stored under `knits.apps` in
 `localStorage` — inside Knits only.
+
+## The reader service
+
+Browsers cannot fetch most cross-origin pages, so Safari's Reader mode uses
+`/api/read` on the deployed Knits site (`deploy/worker.js`). It fetches one http(s) URL,
+refuses loopback and private addresses, caps the body at 2 MB and returns it with
+`access-control-allow-origin: *`. The app tries a direct fetch first (fine for
+CORS-friendly sites) and falls back to that endpoint. The origin lives in
+`src/reader.ts`; if you deploy the site somewhere else, update it there.
 
 ## Version and release notes
 

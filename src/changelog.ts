@@ -7,6 +7,17 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.5.0',
+    date: '25 November 2026',
+    changes: [
+      'Safari works now: Reader mode fetches any page through the Knits reader service and renders its text, headings and links, so sites that block embedding still show.',
+      'A Reader/Web switch in the toolbar: Reader for the text, Web for sites that allow frames.',
+      'Search and links work in Safari: type a query or click a link and the page loads in place.',
+      'New: Knits Store, preinstalled in the Dock, with a custom logo, categories, search, one-click Get, Open and Uninstall.',
+      'Both are installed-app features only, as before.',
+    ],
+  },
+  {
     version: '1.4.0',
     date: '25 November 2026',
     changes: [

@@ -3,6 +3,7 @@ import { IS_APP } from './environment';
 export type BuiltinAppId =
   | 'finder'
   | 'safari'
+  | 'store'
   | 'terminal'
   | 'notes'
   | 'calculator'
@@ -24,6 +25,7 @@ export interface AppDef {
 const ALL_APPS: AppDef[] = [
   { id: 'finder', name: 'Finder', width: 900, height: 560 },
   { id: 'safari', name: 'Safari', width: 960, height: 620, appOnly: true },
+  { id: 'store', name: 'Knits Store', width: 900, height: 600, appOnly: true },
   { id: 'terminal', name: 'Terminal', width: 720, height: 440 },
   { id: 'notes', name: 'Notes', width: 800, height: 520 },
   { id: 'calculator', name: 'Calculator', width: 316, height: 480 },

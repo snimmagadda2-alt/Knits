@@ -13,6 +13,7 @@ import { Glyph } from '../components/Icon';
 import { Window } from '../components/Window';
 import { Finder } from '../apps/Finder';
 import { Safari } from '../apps/Safari';
+import { Store } from '../apps/Store';
 import { Terminal } from '../apps/Terminal';
 import { Notes } from '../apps/Notes';
 import { Calculator } from '../apps/Calculator';
@@ -33,7 +34,7 @@ function readSeenVersion(): string | null {
   }
 }
 
-function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
+function AppSurface({ app, onClose, onOpen }: { app: AppId; onClose: () => void; onOpen: (id: AppId) => void }) {
   const { apps } = useLibrary();
 
   if (isInstalledId(app)) {
@@ -46,6 +47,8 @@ function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
       return <Finder />;
     case 'safari':
       return <Safari />;
+    case 'store':
+      return <Store onOpen={onOpen} />;
     case 'terminal':
       return <Terminal onClose={onClose} />;
     case 'notes':
@@ -148,7 +151,11 @@ export default function Desktop() {
               onMove={(x, y) => wm.move(win.id, x, y)}
               onResize={(w, h) => wm.resize(win.id, w, h)}
             >
-              <AppSurface app={win.app} onClose={() => wm.close(win.id)} />
+              <AppSurface
+                app={win.app}
+                onClose={() => wm.close(win.id)}
+                onOpen={(id) => wm.openApp(id)}
+              />
             </Window>
           ))}
       </div>
