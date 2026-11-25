@@ -16,6 +16,10 @@ on:
     paths:
       - 'packaging/iso/**'
       - 'scripts/build-iso.sh'
+      # The image installs the current .deb, so a new app version ships a new ISO.
+      # Ordinary fixes between releases do not rebuild a gigabyte image.
+      - 'package.json'
+      - 'public/downloads/knits_all.deb'
       - '.github/workflows/iso.yml'
 
 permissions:
