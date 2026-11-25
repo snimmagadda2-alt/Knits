@@ -1,4 +1,6 @@
-import { useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { APPS } from '../apps';
+import { IS_APP } from '../environment';
 import type { Win } from '../desktop/useWindows';
 
 interface Props {
@@ -15,6 +17,19 @@ interface Props {
 }
 
 const MENU_BAR = 28;
+const DOCK_ITEM = 60;
+const DOCK_ICON_Y = 46;
+
+/** How far this window has to travel to reach its dock icon, so the jelly flight lands on it. */
+function flightToDock(win: Win) {
+  const index = APPS.findIndex((app) => app.id === win.app);
+  const slot = index < 0 ? 0 : index - (APPS.length - 1) / 2;
+  const targetX = window.innerWidth / 2 + slot * DOCK_ITEM;
+  const targetY = window.innerHeight - DOCK_ICON_Y;
+  const originX = win.maximized ? window.innerWidth / 2 : win.x + win.w / 2;
+  const originY = win.maximized ? MENU_BAR + (window.innerHeight - MENU_BAR) / 2 : win.y + win.h / 2;
+  return { x: Math.round(targetX - originX), y: Math.round(targetY - originY) };
+}
 
 export function Window({
   win,
@@ -85,10 +100,22 @@ export function Window({
     ? { left: 0, top: MENU_BAR, width: '100%', height: `calc(100% - ${MENU_BAR}px)`, zIndex: win.z }
     : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z };
 
+  const fly = flightToDock(win);
+  const vars = { '--fly-x': `${fly.x}px`, '--fly-y': `${fly.y}px` } as CSSProperties;
+  const fx = IS_APP
+    ? win.minimizing
+      ? ' is-minimizing'
+      : win.fx === 'restore'
+        ? ' is-restoring'
+        : win.fx === 'new'
+          ? ' is-opening'
+          : ''
+    : '';
+
   return (
     <section
-      className={`window${active ? ' is-active' : ''}${win.maximized ? ' is-maximized' : ''}`}
-      style={style}
+      className={`window${active ? ' is-active' : ''}${win.maximized ? ' is-maximized' : ''}${fx}`}
+      style={{ ...style, ...vars }}
       onPointerDown={onFocus}
       aria-label={title}
     >

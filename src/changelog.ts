@@ -7,6 +7,16 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.2.0',
+    date: '25 November 2026',
+    changes: [
+      'Safari: an address bar, back and forward, reload, favourites and an offline page — in the installed app only.',
+      'Wi-Fi now works: click the Wi-Fi icon in the menu bar to switch it off, on and between networks. Safari cannot load a page while it is off.',
+      'Windows fly to their dock icon with a jelly squash-and-stretch when you minimise them, and spring back when you reopen them.',
+      'Opening a window has the same little jelly bounce, in the installed app only.',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '25 November 2026',
     changes: [

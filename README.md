@@ -20,6 +20,13 @@ not run macOS binaries and does not ship or require Apple firmware.
 - **Lock screen** — click to unlock (any password).
 - **Update log** — the first run of a new version shows what changed; close it with the
   X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
+- **Safari** (installed app only) — address bar with search, back/forward, reload,
+  favourites, an offline page, and an escape hatch that opens a page in a real tab.
+- **Wi-Fi** (installed app only) — the menu-bar Wi-Fi item is a real switch: turn it
+  off, on, or move between networks. Safari refuses to load anything while it is off.
+- **Jelly animations** (installed app only) — minimising sends the window flying into
+  its dock icon with a squash-and-stretch, reopening springs it back, and new windows
+  bounce in.
 
 Preferences, notes and wallpaper choices are stored in `localStorage`. Nothing is
 sent over the network.
@@ -51,7 +58,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.1.0_all.deb
+sudo apt install ./dist/knits_1.2.0_all.deb
 knits
 ```
 
@@ -102,6 +109,11 @@ install.sh             one-command install from this repository
 
 Because the package at `public/downloads/` is committed, the download buttons work on
 Vercel (or any static host) with no extra build step.
+
+Safari, the Wi-Fi switch and the jelly window animations are gated on the app build
+(`src/environment.ts`): they appear when Knits is served from `127.0.0.1` by the
+launcher, and stay out of the website. Add `?app=1` to a dev or preview URL to see the
+app build in a browser, or `?app=0` to force the website build.
 
 ## Version and release notes
 

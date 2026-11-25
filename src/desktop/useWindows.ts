@@ -1,5 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { APP_MAP, type AppId } from '../apps';
+import { IS_APP } from '../environment';
+
+export type WinFx = 'new' | 'restore' | null;
 
 export interface Win {
   id: string;
@@ -11,27 +14,61 @@ export interface Win {
   z: number;
   minimized: boolean;
   maximized: boolean;
+  /** Which open animation is playing, if any. */
+  fx: WinFx;
+  /** The window is on its way to the dock but not hidden yet. */
+  minimizing: boolean;
 }
 
 const MENU_BAR = 28;
 const DOCK_SPACE = 96;
 
+// App builds animate; the website keeps its instant switching.
+const MINIMIZE_MS = IS_APP ? 470 : 0;
+const OPEN_MS = IS_APP ? 560 : 0;
+
 export function useWindows() {
   const [wins, setWins] = useState<Win[]>([]);
   const zCounter = useRef(10);
   const idCounter = useRef(0);
+  const scheduled = useRef(new Set<string>());
 
   const nextZ = () => {
     zCounter.current += 1;
     return zCounter.current;
   };
 
+  // Animations end on a timer so the window can finish flying to the dock before it goes.
+  useEffect(() => {
+    wins.forEach((win) => {
+      if (win.minimizing && !scheduled.current.has(`${win.id}:min`)) {
+        scheduled.current.add(`${win.id}:min`);
+        window.setTimeout(() => {
+          scheduled.current.delete(`${win.id}:min`);
+          setWins((prev) =>
+            prev.map((item) => (item.id === win.id ? { ...item, minimized: true, minimizing: false } : item)),
+          );
+        }, MINIMIZE_MS);
+      }
+      if (win.fx && !scheduled.current.has(`${win.id}:fx`)) {
+        scheduled.current.add(`${win.id}:fx`);
+        window.setTimeout(() => {
+          scheduled.current.delete(`${win.id}:fx`);
+          setWins((prev) => prev.map((item) => (item.id === win.id ? { ...item, fx: null } : item)));
+        }, OPEN_MS);
+      }
+    });
+  }, [wins]);
+
   const openApp = useCallback((app: AppId) => {
     setWins((prev) => {
       const existing = prev.find((win) => win.app === app);
       if (existing) {
+        if (!existing.minimized) {
+          return prev.map((win) => (win.id === existing.id ? { ...win, z: nextZ() } : win));
+        }
         return prev.map((win) =>
-          win.id === existing.id ? { ...win, minimized: false, z: nextZ() } : win,
+          win.id === existing.id ? { ...win, minimized: false, fx: 'restore', z: nextZ() } : win,
         );
       }
       const def = APP_MAP[app];
@@ -53,6 +90,8 @@ export function useWindows() {
           z: nextZ(),
           minimized: false,
           maximized: false,
+          fx: 'new',
+          minimizing: false,
         },
       ];
     });
@@ -67,7 +106,7 @@ export function useWindows() {
   }, []);
 
   const minimize = useCallback((id: string) => {
-    setWins((prev) => prev.map((win) => (win.id === id ? { ...win, minimized: true } : win)));
+    setWins((prev) => prev.map((win) => (win.id === id ? { ...win, minimizing: true } : win)));
   }, []);
 
   const toggleMax = useCallback((id: string) => {

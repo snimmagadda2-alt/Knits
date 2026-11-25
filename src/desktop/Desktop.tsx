@@ -6,6 +6,7 @@ import { MenuBar } from '../components/MenuBar';
 import { Spotlight } from '../components/Spotlight';
 import { Window } from '../components/Window';
 import { Finder } from '../apps/Finder';
+import { Safari } from '../apps/Safari';
 import { Terminal } from '../apps/Terminal';
 import { Notes } from '../apps/Notes';
 import { Calculator } from '../apps/Calculator';
@@ -30,6 +31,8 @@ function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
   switch (app) {
     case 'finder':
       return <Finder />;
+    case 'safari':
+      return <Safari />;
     case 'terminal':
       return <Terminal onClose={onClose} />;
     case 'notes':

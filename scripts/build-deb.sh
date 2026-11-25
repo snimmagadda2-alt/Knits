@@ -33,6 +33,9 @@ mkdir -p \
   "$PKG/usr/share/doc/knits"
 
 cp -a "$ROOT/dist/web/." "$PKG/opt/knits/web/"
+# Never ship the downloadable packages inside the installed app: that would nest the
+# previous .deb in every new one and double the package on each release.
+rm -rf "$PKG/opt/knits/web/downloads"
 install -m 755 "$ROOT/packaging/knits-launcher.sh" "$PKG/usr/bin/knits"
 install -m 644 "$ROOT/packaging/knits.desktop" "$PKG/usr/share/applications/knits.desktop"
 install -m 644 "$ROOT/packaging/knits.svg" "$PKG/usr/share/icons/hicolor/scalable/apps/knits.svg"

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Glyph } from './Icon';
+import { NETWORKS, usePrefs } from '../prefs';
+import { IS_APP } from '../environment';
 import type { AppDef } from '../apps';
 
 interface MenuItem {
@@ -26,7 +28,81 @@ function clockText(now: Date) {
   return `${weekday} ${month} ${day}  ${time}`;
 }
 
-export function MenuBar({ activeApp, onOpenApp, onSpotlight, onLock, onRestart, onCloseActive, onWhatsNew }: Props) {
+/** App builds only: a working Wi-Fi switch that Safari reads before loading a page. */
+function WifiStatus() {
+  const { prefs, setPrefs } = usePrefs();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [open]);
+
+  return (
+    <div className="wifi" ref={ref}>
+      <button
+        className={`mb-status${open ? ' is-open' : ''}`}
+        onClick={() => setOpen((value) => !value)}
+        aria-label="Wi-Fi"
+      >
+        <Glyph name={prefs.wifi ? 'wifi' : 'wifi-off'} size={16} />
+      </button>
+
+      {open && (
+        <div className="wifi-panel">
+          <div className="wifi-head">
+            <span>Wi-Fi</span>
+            <button
+              className={`switch${prefs.wifi ? ' is-on' : ''}`}
+              role="switch"
+              aria-checked={prefs.wifi}
+              aria-label="Wi-Fi"
+              onClick={() => setPrefs({ wifi: !prefs.wifi })}
+            >
+              <span className="switch-knob" />
+            </button>
+          </div>
+
+          {prefs.wifi ? (
+            <>
+              <p className="wifi-note">Connected to {prefs.network}</p>
+              <div className="wifi-networks">
+                {NETWORKS.map((network) => (
+                  <button
+                    key={network}
+                    className={`wifi-row${prefs.network === network ? ' is-current' : ''}`}
+                    onClick={() => setPrefs({ network })}
+                  >
+                    <Glyph name="wifi" size={15} />
+                    <span>{network}</span>
+                    <Glyph name="lock" size={13} />
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="wifi-note">Wi-Fi is off. Safari cannot load pages until it is back on.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MenuBar({
+  activeApp,
+  onOpenApp,
+  onSpotlight,
+  onLock,
+  onRestart,
+  onWhatsNew,
+  onCloseActive,
+}: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
   const barRef = useRef<HTMLDivElement>(null);
@@ -128,9 +204,13 @@ export function MenuBar({ activeApp, onOpenApp, onSpotlight, onLock, onRestart, 
         <button className="mb-status" onClick={onSpotlight} aria-label="Spotlight search">
           <Glyph name="search" size={15} />
         </button>
-        <span className="mb-status" aria-hidden>
-          <Glyph name="wifi" size={16} />
-        </span>
+        {IS_APP ? (
+          <WifiStatus />
+        ) : (
+          <span className="mb-status" aria-hidden>
+            <Glyph name="wifi" size={16} />
+          </span>
+        )}
         <span className="mb-status" aria-hidden>
           <Glyph name="battery" size={18} />
         </span>

@@ -12,6 +12,28 @@ export function AppIcon({ id, size = 52 }: { id: IconId; size?: number }) {
   } as const;
 
   switch (id) {
+    case 'safari':
+      return (
+        <svg {...props}>
+          <defs>
+            <linearGradient id="saf" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#4fd0ff" />
+              <stop offset="1" stopColor="#0a63d6" />
+            </linearGradient>
+          </defs>
+          <rect width="64" height="64" rx="15" fill="url(#saf)" />
+          <rect x="1" y="1" width="62" height="62" rx="14" fill="none" stroke="rgba(255,255,255,0.2)" />
+          <circle cx="32" cy="32" r="21.5" fill="none" stroke="rgba(255,255,255,0.92)" strokeWidth="2.4" />
+          <g stroke="rgba(255,255,255,0.55)" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M32 12.5v2.6" />
+            <path d="M32 48.9v2.6" />
+            <path d="M12.5 32h2.6" />
+            <path d="M48.9 32h2.6" />
+          </g>
+          <path d="M41.5 22.5L27.6 28.2 22.5 41.5 36.4 35.8z" fill="#fff" />
+          <path d="M36.4 35.8l5.1-13.3-13.9 5.7z" fill="#ff5a4f" />
+        </svg>
+      );
     case 'finder':
       return (
         <svg {...props}>
@@ -174,6 +196,37 @@ export function Glyph({ name, size = 16 }: { name: string; size?: number }) {
           <path d="M6.5 13a8 8 0 0 1 11 0" />
           <path d="M10 16.4a3 3 0 0 1 4 0" />
           <circle cx="12" cy="19.4" r="0.9" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'wifi-off':
+      return (
+        <svg {...props}>
+          <path d="M3 9.5a13 13 0 0 1 18 0" opacity="0.45" />
+          <path d="M6.5 13a8 8 0 0 1 11 0" opacity="0.45" />
+          <path d="M10 16.4a3 3 0 0 1 4 0" opacity="0.45" />
+          <path d="M4 4l16 16" />
+        </svg>
+      );
+    case 'lock':
+      return (
+        <svg {...props}>
+          <rect x="5" y="10.5" width="14" height="9.5" rx="2.4" />
+          <path d="M8.4 10.5V8a3.6 3.6 0 0 1 7.2 0v2.5" />
+        </svg>
+      );
+    case 'reload':
+      return (
+        <svg {...props}>
+          <path d="M19.5 12a7.5 7.5 0 1 1-2.6-5.7" />
+          <path d="M19.6 4.4v4.6h-4.6" />
+        </svg>
+      );
+    case 'external':
+      return (
+        <svg {...props}>
+          <path d="M13.5 4.5h6v6" />
+          <path d="M19.5 4.5l-8 8" />
+          <path d="M18 14.5v4a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6h4" />
         </svg>
       );
     case 'battery':

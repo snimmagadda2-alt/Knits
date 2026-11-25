@@ -40,9 +40,20 @@ export interface Prefs {
   appearance: Appearance;
   wallpaper: string;
   accent: string;
+  /** App builds only: Safari refuses to load pages while this is false. */
+  wifi: boolean;
+  network: string;
 }
 
-const DEFAULT_PREFS: Prefs = { appearance: 'dark', wallpaper: 'flow', accent: '#0a84ff' };
+export const NETWORKS = ['Knits Studio', 'Knits Guest', 'Neighbour 5G'];
+
+const DEFAULT_PREFS: Prefs = {
+  appearance: 'dark',
+  wallpaper: 'flow',
+  accent: '#0a84ff',
+  wifi: true,
+  network: NETWORKS[0],
+};
 const STORAGE_KEY = 'knits.prefs';
 
 interface PrefsValue {
