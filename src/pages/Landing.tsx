@@ -186,7 +186,9 @@ knits`}</code>
             </a>
           </div>
           <p className="install-hint">
-            {ISO_NAME} · about 1.2 GB · boots on UEFI and BIOS · built by GitHub Actions from this repository
+            {ISO_NAME} · about 1.2 GB · boots on UEFI and BIOS · built by GitHub Actions from this repository.
+            If the download is not there yet, run <code>npm run build:iso</code> or start the{' '}
+            <a href={`${REPO}/actions/workflows/iso.yml`}>Build live ISO</a> workflow.
           </p>
 
           <img

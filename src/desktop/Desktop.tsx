@@ -239,7 +239,7 @@ export default function Desktop() {
         </div>
       )}
 
-      {IS_APP && activePackage && (
+      {activePackage && (
         <PackageInstaller
           download={activePackage}
           onClose={closePackage}

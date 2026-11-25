@@ -12,7 +12,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="$(node -p "require('./package.json').version")"
+# Read the version without needing Node: the ISO job can run inside a plain Debian
+# container, where Node is not installed.
+if command -v node >/dev/null 2>&1; then
+  VERSION="$(node -p "require('./package.json').version")"
+else
+  VERSION="$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' package.json | head -n 1)"
+fi
+[ -n "$VERSION" ] || { echo "build-iso: could not read the version from package.json" >&2; exit 1; }
+
 NAME="knits-${VERSION}-amd64"
 DEB="dist/knits_${VERSION}_all.deb"
 WORK="dist/iso"
@@ -28,15 +36,24 @@ for tool in lb debootstrap mksquashfs xorriso; do
     die "$tool is missing — apt install live-build debootstrap squashfs-tools xorriso"
 done
 
-# The image installs the same package the site hands out, so build it first.
-if [ ! -f dist/web/index.html ]; then
-  say "building the app bundle"
-  npm run build:web
+# live-build assembles the boot loader itself; without these it fails late and quietly.
+if [ ! -f /usr/lib/ISOLINUX/isolinux.bin ] && ! command -v grub-mkstandalone >/dev/null 2>&1; then
+  say "warning: no isolinux.bin and no grub-mkstandalone — install syslinux-common, isolinux and grub-pc-bin"
 fi
+say "live-build: $(lb --version 2>/dev/null | head -n 1)"
 
-if [ ! -f "$DEB" ]; then
-  say "building $DEB"
-  npm run deb
+# The image installs the same package the site hands out, so build it first.
+if [ ! -f dist/web/index.html ] || [ ! -f "$DEB" ]; then
+  command -v npm >/dev/null 2>&1 ||
+    die "dist/ is incomplete and npm is not installed — run 'npm run build' first"
+  if [ ! -f dist/web/index.html ]; then
+    say "building the app bundle"
+    npm run build:web
+  fi
+  if [ ! -f "$DEB" ]; then
+    say "building $DEB"
+    npm run deb
+  fi
 fi
 
 rm -rf "$WORK"
@@ -63,7 +80,14 @@ say "configuring live-build (Debian 12, amd64)"
 )
 
 say "building the image — this downloads a few hundred megabytes and takes a while"
-(cd "$WORK" && lb build)
+LOG="$WORK/build.log"
+# Keep the log and turn its tail into workflow annotations (::error:: lines are public
+# on the run, so a failure is readable without admin access to the job log).
+if ! (cd "$WORK" && lb build) 2>&1 | tee "$LOG"; then
+  echo "::error::live-build failed. Last lines of build.log:"
+  tail -n 40 "$LOG" | sed 's/\r//g; s/^/::error::/'
+  exit 1
+fi
 
 BUILT="$WORK/live-image-amd64.hybrid.iso"
 [ -f "$BUILT" ] || die "live-build finished without producing an image"

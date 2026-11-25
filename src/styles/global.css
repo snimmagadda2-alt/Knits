@@ -3817,3 +3817,29 @@ html[data-theme="light"] .dock-sep {
     padding: 32px 16px 24px;
   }
 }
+
+.google-fallback {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef7e0;
+  border: 1px solid #f0d9a0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #5f4b16;
+}
+
+.google-fallback a {
+  color: #1a73e8;
+}
+
+.google-results .reader-heading .reader-link {
+  font-size: inherit;
+  font-weight: inherit;
+  color: #1a73e8;
+  text-align: left;
+}
+
+.google-results .reader-heading .reader-link:hover {
+  text-decoration: underline;
+}

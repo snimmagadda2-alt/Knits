@@ -336,18 +336,34 @@ async function fetchText(url: string): Promise<string> {
 }
 
 export async function runShell(input: string, cwd: string[], ctx: ShellContext): Promise<ShellResult> {
-  const stages = input
-    .split('|')
-    .map((stage) => stage.trim())
+  // `cmd && cmd` and `cmd; cmd` run in order, the way a Debian shell does.
+  const commands = input
+    .split(/\s*(?:&&|;)\s*/)
+    .map((command) => command.trim())
     .filter(Boolean);
-  if (!stages.length) return { lines: [] };
+  if (!commands.length) return { lines: [] };
 
-  const first = await exec(tokenize(stages[0]), cwd, ctx);
-  if (first.cwd || first.clear || first.close) return first;
+  const lines: ShellLine[] = [];
+  let current = cwd;
 
-  let lines = first.lines;
-  for (const stage of stages.slice(1)) lines = applyFilter(lines, tokenize(stage));
-  return { lines };
+  for (const command of commands) {
+    const stages = command
+      .split('|')
+      .map((stage) => stage.trim())
+      .filter(Boolean);
+    if (!stages.length) continue;
+
+    const first = await exec(tokenize(stages[0]), current, ctx);
+    if (first.clear) return { lines: [], clear: true };
+    if (first.close) return { lines: [], close: true };
+    if (first.cwd) current = first.cwd;
+
+    let output = first.lines;
+    for (const stage of stages.slice(1)) output = applyFilter(output, tokenize(stage));
+    lines.push(...output);
+  }
+
+  return { lines, cwd: keyOf(current) === keyOf(cwd) ? undefined : current };
 }
 
 async function exec(argv: string[], cwd: string[], ctx: ShellContext): Promise<ShellResult> {

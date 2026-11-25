@@ -7,6 +7,17 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.10.1',
+    date: '25 November 2026',
+    changes: [
+      'Google search shows results again: Google answers with a JavaScript-only page, so the app falls back to readable results and says where they came from.',
+      'Following a result opens the site itself — the redirect links search engines hand out are unwrapped first.',
+      'Installing a .deb works in the website demo too; the installer used to be gated to the installed app and did nothing on the site.',
+      'The shell runs several commands in a row: cd Downloads && ls, and ; between commands.',
+      'The live ISO build installs the boot-loader toolchain it was missing and reports a failure with the lines that caused it.',
+    ],
+  },
+  {
     version: '1.10.0',
     date: '25 November 2026',
     changes: [

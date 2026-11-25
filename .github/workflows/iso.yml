@@ -47,14 +47,18 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build
 
-      - name: Install live-build
+      - name: Install live-build and the boot-loader toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            live-build debootstrap squashfs-tools xorriso
+          # live-build recommends the pieces that write isolinux/grub onto the image;
+          # without them the build gets all the way to the end and then fails.
+          sudo apt-get install -y \
+            live-build debootstrap squashfs-tools xorriso \
+            syslinux syslinux-common isolinux \
+            grub-pc-bin grub-efi-amd64-bin mtools dosfstools
 
       - name: Build the ISO
-        run: sudo env "PATH=$PATH" bash scripts/build-iso.sh
+        run: sudo env "PATH=$PATH" bash -x scripts/build-iso.sh
 
       - name: Publish to the "iso" release
         env:

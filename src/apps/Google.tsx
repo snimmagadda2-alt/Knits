@@ -25,6 +25,20 @@ const searchUrl = (query: string) =>
   // gbv=1 asks Google for its basic HTML page, which is the version Knits can read.
   `https://www.google.com/search?gbv=1&q=${encodeURIComponent(query)}`;
 
+/** Bing's HTML page is server-rendered, which is what makes the fallback usable. */
+const bingUrl = (query: string) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en`;
+
+/** Google now answers with a JavaScript shell; a page of real results has links. */
+function hasResults(doc: ReaderDoc): boolean {
+  let links = 0;
+  for (const block of doc.blocks) {
+    if (block.kind === 'heading' && block.href) links += 1;
+    if (block.kind === 'paragraph') links += block.spans.filter((span) => span.href).length;
+    if (block.kind === 'list') links += block.items.reduce((sum, item) => sum + item.filter((s) => s.href).length, 0);
+  }
+  return links >= 3;
+}
+
 export function Google() {
   const [field, setField] = useState('');
   const [target, setTarget] = useState<string | null>(null);
@@ -32,6 +46,7 @@ export function Google() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
+  const [source, setSource] = useState<'google' | 'bing'>('google');
   const [, setHistory] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +64,30 @@ export function Google() {
     setLoading(true);
     setError(null);
     setDoc(null);
-    readPage(target, controller.signal)
+    setSource('google');
+
+    const load = async () => {
+      const result = await readPage(target, controller.signal);
+      if (controller.signal.aborted) return result;
+
+      // Google's own results page needs JavaScript. Rather than show an empty page,
+      // read the same query from a search engine that still renders HTML.
+      const query = (() => {
+        try {
+          return new URL(target).searchParams.get('q') ?? '';
+        } catch {
+          return '';
+        }
+      })();
+      const googleSearch = target.startsWith('https://www.google.com/search');
+      if (googleSearch && query && !hasResults(result)) {
+        setSource('bing');
+        return readPage(bingUrl(query), controller.signal);
+      }
+      return result;
+    };
+
+    load()
       .then((result) => {
         if (controller.signal.aborted) return;
         setDoc(result);
@@ -60,6 +98,7 @@ export function Google() {
         setError(reason instanceof Error ? reason.message : 'That page could not be read.');
         setLoading(false);
       });
+
     return () => controller.abort();
   }, [target, nonce]);
 
@@ -230,11 +269,26 @@ export function Google() {
               <span className="reader-host">{doc.host}</span>
               <h1>{doc.title}</h1>
             </header>
+
+            {source === 'bing' && (
+              <p className="google-fallback">
+                Google answers with a JavaScript-only page that Knits cannot read, so these results come from Bing.{' '}
+                <a href={target} target="_blank" rel="noreferrer">
+                  Open this search on Google
+                </a>
+              </p>
+            )}
             {doc.blocks.map((block, index) => {
               if (block.kind === 'heading') {
                 return (
                   <h3 key={index} className={`reader-heading level-${block.level}`}>
-                    {block.text}
+                    {block.href ? (
+                      <button className="reader-link" onClick={() => go(block.href!)}>
+                        {block.text}
+                      </button>
+                    ) : (
+                      block.text
+                    )}
                   </h3>
                 );
               }

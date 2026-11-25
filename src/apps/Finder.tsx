@@ -173,13 +173,8 @@ export function Finder() {
           <div className="finder-menu" style={{ left: menu.x, top: menu.y }} role="menu">
             <button role="menuitem" onClick={() => openItem(menuNode)}>
               <span>{menuNode.kind === 'folder' ? 'Open' : PACKAGE.test(menuNode.name) ? 'Install' : 'Open'}</span>
+              {PACKAGE.test(menuNode.name) && <span className="finder-menu-note">wizard</span>}
             </button>
-            {PACKAGE.test(menuNode.name) && menuNode.name.toLowerCase().endsWith('.deb') && (
-              <button role="menuitem" onClick={() => install(menuNode)}>
-                <span>Install .deb</span>
-                <span className="finder-menu-note">wizard</span>
-              </button>
-            )}
             <span className="finder-menu-sep" />
             <button
               role="menuitem"

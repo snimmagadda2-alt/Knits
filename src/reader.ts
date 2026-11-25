@@ -13,7 +13,7 @@ export interface Span {
 }
 
 export type ReaderBlock =
-  | { kind: 'heading'; level: number; text: string }
+  | { kind: 'heading'; level: number; text: string; href?: string }
   | { kind: 'paragraph'; spans: Span[] }
   | { kind: 'list'; items: Span[][] }
   | { kind: 'quote'; spans: Span[] }
@@ -29,11 +29,37 @@ export interface ReaderDoc {
 const SKIP = 'script, style, noscript, svg, iframe, object, embed, nav, header, footer, aside, form, button, select, input, textarea, template';
 const MAX_BLOCKS = 400;
 
+/**
+ * Search engines wrap result links in a redirect that only works with JavaScript
+ * (bing.com/ck/a?u=a1<base64>, duckduckgo.com/l/?uddg=…). Unwrap them, or following a
+ * result lands on "please click here if you are not redirected".
+ */
+function unwrap(href: string): string {
+  try {
+    const url = new URL(href);
+    const host = url.hostname.replace(/^www\./, '');
+    if (host === 'bing.com' && url.pathname === '/ck/a') {
+      const raw = url.searchParams.get('u');
+      if (raw) {
+        const base64 = raw.replace(/^a1/, '').replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+        const decoded = atob(padded);
+        if (/^https?:\/\//i.test(decoded)) return decoded;
+      }
+    }
+    const target = url.searchParams.get('uddg');
+    if (target && /^https?:\/\//i.test(target)) return target;
+  } catch {
+    /* not a wrapper: keep the link as it is */
+  }
+  return href;
+}
+
 function absolute(href: string | null, base: string): string | undefined {
   if (!href) return undefined;
   if (href.startsWith('#') || href.startsWith('javascript:')) return undefined;
   try {
-    return new URL(href, base).href;
+    return unwrap(new URL(href, base).href);
   } catch {
     return undefined;
   }
@@ -99,7 +125,11 @@ function parse(html: string, url: string): ReaderDoc {
 
       if (/^h[1-6]$/.test(tag)) {
         const text = (element.textContent ?? '').replace(/\s+/g, ' ').trim();
-        if (text) push({ kind: 'heading', level: Math.min(Number(tag[1]), 3), text });
+        // Search results put the link on the heading, so keep the href: without it a
+        // result title is text you cannot click.
+        const anchor = element.querySelector('a[href]');
+        const href = anchor ? absolute(anchor.getAttribute('href'), base) : undefined;
+        if (text) push({ kind: 'heading', level: Math.min(Number(tag[1]), 3), text, href });
         return;
       }
       if (tag === 'p') {
