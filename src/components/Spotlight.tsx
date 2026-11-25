@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { APPS, type AppId } from '../apps';
 import { flattenFiles } from '../vfs';
+import { useLibrary } from '../library';
+import { AppletIcon } from '../apps/Applet';
 import { AppIcon, Glyph } from './Icon';
 
 interface Props {
@@ -17,6 +19,7 @@ interface Result {
 }
 
 export function Spotlight({ onClose, onOpenApp }: Props) {
+  const { apps } = useLibrary();
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +41,19 @@ export function Spotlight({ onClose, onOpenApp }: Props) {
       },
     }));
 
+    const installedResults: Result[] = apps
+      .filter((app) => !q || app.name.toLowerCase().includes(q))
+      .map((app) => ({
+        key: `installed-${app.id}`,
+        title: app.name,
+        subtitle: 'Installed in Knits',
+        icon: <AppletIcon kind={app.kind} size={34} />,
+        run: () => {
+          onOpenApp(`app:${app.id}`);
+          onClose();
+        },
+      }));
+
     const fileResults: Result[] = flattenFiles()
       .filter((file) => q.length > 1 && (file.name.toLowerCase().includes(q) || file.content.toLowerCase().includes(q)))
       .slice(0, 5)
@@ -56,8 +72,8 @@ export function Spotlight({ onClose, onOpenApp }: Props) {
         },
       }));
 
-    return [...appResults, ...fileResults];
-  }, [query, onOpenApp, onClose]);
+    return [...appResults, ...installedResults, ...fileResults];
+  }, [query, apps, onOpenApp, onClose]);
 
   useEffect(() => {
     setCursor(0);

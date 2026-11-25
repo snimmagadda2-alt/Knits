@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePrefs } from '../prefs';
+import { formatSize, useLibrary } from '../library';
 import { Glyph } from '../components/Icon';
 
 interface Favorite {
@@ -13,6 +14,16 @@ const FAVORITES: Favorite[] = [
   { title: 'Hacker News', url: 'https://news.ycombinator.com' },
   { title: 'OpenStreetMap', url: 'https://www.openstreetmap.org' },
 ];
+
+/** Packages that ship with Knits, served next to the app itself. */
+const CATALOGUE = [
+  { name: 'Clock', file: 'knits-clock.pkg', format: 'pkg', blurb: 'World clock with a live digital face.' },
+  { name: 'Weather', file: 'knits-weather.pkg', format: 'pkg', blurb: 'Five day forecast for Knits Studio.' },
+  { name: 'Gallery', file: 'knits-gallery.dmg', format: 'dmg', blurb: 'Colour tiles, shipped as a disk image.' },
+];
+
+const packageUrl = (file: string) => new URL(`${import.meta.env.BASE_URL}packages/${file}`, window.location.href).href;
+const isPackageUrl = (url: string) => /\.(pkg|dmg)(?:$|[?#])/i.test(url);
 
 function normalize(raw: string): string | null {
   const value = raw.trim();
@@ -32,11 +43,13 @@ function hostOf(url: string): string {
 
 export function Safari() {
   const { prefs, setPrefs } = usePrefs();
+  const { downloads, download, open, remove, clearDownloads, installed } = useLibrary();
   const [stack, setStack] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
   const [field, setField] = useState('');
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
+  const [shelf, setShelf] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const page = cursor >= 0 ? stack[cursor] : null;
@@ -47,8 +60,17 @@ export function Safari() {
   }, [page]);
 
   const visit = (raw: string) => {
+    if (!prefs.wifi) return;
     const url = normalize(raw);
     if (!url) return;
+
+    // A package is downloaded, not displayed.
+    if (isPackageUrl(url)) {
+      setShelf(true);
+      void download(url);
+      return;
+    }
+
     setStack((prev) => [...prev.slice(0, cursor + 1), url]);
     setCursor(cursor + 1);
     setLoading(true);
@@ -156,17 +178,73 @@ export function Safari() {
                 </button>
               ))}
             </div>
+
+            <h2>Knits Software</h2>
+            <div className="safari-packages">
+              {CATALOGUE.map((item) => {
+                const done = installed(item.file.replace(/^knits-/, '').replace(/\.(pkg|dmg)$/, ''));
+                return (
+                  <button
+                    key={item.file}
+                    className="safari-package"
+                    onClick={() => {
+                      setShelf(true);
+                      void download(packageUrl(item.file));
+                    }}
+                  >
+                    <span className={`safari-package-badge is-${item.format}`}>.{item.format}</span>
+                    <span className="safari-package-title">{item.name}</span>
+                    <span className="safari-package-blurb">{item.blurb}</span>
+                    <span className="safari-package-state">{done ? 'Installed' : 'Download'}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             <p className="safari-hint">
-              Connected to {prefs.network}. Sites that refuse to be embedded in a frame load blank — the arrow in the
-              toolbar opens them in a real browser tab.
+              Connected to {prefs.network}. Packages install inside Knits only — nothing is written to your real
+              computer. Sites that refuse to be embedded load blank; the arrow in the toolbar opens them in a real tab.
             </p>
           </div>
         )}
       </div>
 
+      {downloads.length > 0 && shelf && (
+        <div className="safari-downloads">
+          <div className="safari-downloads-head">
+            <span>
+              <Glyph name="download" size={13} /> Downloads
+            </span>
+            <span className="safari-downloads-actions">
+              <button onClick={clearDownloads} aria-label="Clear downloads">
+                Clear
+              </button>
+              <button onClick={() => setShelf(false)} aria-label="Hide downloads">
+                ×
+              </button>
+            </span>
+          </div>
+          {downloads.map((item) => (
+            <div key={item.id} className={`safari-download${item.error ? ' is-broken' : ''}`}>
+              <button className="safari-download-open" onClick={() => open(item)}>
+                <span className="safari-download-name">{item.fileName}</span>
+                <span className="safari-download-meta">
+                  {item.error ?? `${item.format === 'dmg' ? 'Disk image' : 'Package'} · ${formatSize(item.size)}`}
+                </span>
+              </button>
+              <button className="safari-icon-btn" onClick={() => remove(item.id)} aria-label={`Remove ${item.fileName}`}>
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="safari-status">
         <span>{page ? host : 'Start Page'}</span>
-        <span>{page ? (page.startsWith('https://') ? 'Secure' : 'Not secure') : 'Wi-Fi ' + (prefs.wifi ? 'on' : 'off')}</span>
+        <span>
+          {page ? (page.startsWith('https://') ? 'Secure' : 'Not secure') : `Wi-Fi ${prefs.wifi ? 'on' : 'off'}`}
+        </span>
       </div>
     </div>
   );

@@ -22,6 +22,11 @@ not run macOS binaries and does not ship or require Apple firmware.
   X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
 - **Safari** (installed app only) — address bar with search, back/forward, reload,
   favourites, an offline page, and an escape hatch that opens a page in a real tab.
+- **Packages** (installed app only) — Safari downloads `.pkg` and `.dmg` files into a
+  Downloads shelf. Installer opens a `.pkg` and installs its app into Knits; a `.dmg`
+  mounts a virtual volume with a *Move to Applications* step. Installed apps appear in
+  the Dock and Spotlight and are remembered in `localStorage`. Nothing is written to
+  the real computer and no macOS software is executed.
 - **Wi-Fi** (installed app only) — the menu-bar Wi-Fi item is a real switch: turn it
   off, on, or move between networks. Safari refuses to load anything while it is off.
 - **Jelly animations** (installed app only) — minimising sends the window flying into
@@ -58,7 +63,7 @@ serve a real package.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.2.0_all.deb
+sudo apt install ./dist/knits_1.3.0_all.deb
 knits
 ```
 
@@ -114,6 +119,30 @@ Safari, the Wi-Fi switch and the jelly window animations are gated on the app bu
 (`src/environment.ts`): they appear when Knits is served from `127.0.0.1` by the
 launcher, and stay out of the website. Add `?app=1` to a dev or preview URL to see the
 app build in a browser, or `?app=0` to force the website build.
+
+## Packages (.pkg and .dmg)
+
+Knits cannot run real macOS software, so its packages are a small JSON format with the
+same file extensions. Safari downloads them, and Installer turns the manifest into an
+app that Knits renders natively:
+
+```json
+{
+  "format": "knits-pkg",
+  "id": "clock",
+  "name": "Clock",
+  "version": "1.2",
+  "publisher": "Knits Labs",
+  "kind": "clock",
+  "payload": { "zones": [{ "label": "Local", "zone": null }] }
+}
+```
+
+A disk image uses `"format": "knits-dmg"`, a `volume` name and the same object under
+`"app"`. `kind` is one of `clock`, `weather` or `gallery`. The three packages served
+from `public/packages/` are listed in Safari's *Knits Software* section; add your own
+file there and it becomes downloadable too. Installs are stored under `knits.apps` in
+`localStorage` — inside Knits only.
 
 ## Version and release notes
 

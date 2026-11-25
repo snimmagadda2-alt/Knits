@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Landing from './pages/Landing';
 import Desktop from './desktop/Desktop';
 import { PrefsProvider } from './prefs';
+import { LibraryProvider } from './library';
 
 function readRoute(): string {
   return window.location.hash.replace(/^#\/?/, '').split('?')[0];
@@ -20,5 +21,9 @@ export default function App() {
     window.scrollTo({ top: 0 });
   }, [route]);
 
-  return <PrefsProvider>{route === 'desktop' ? <Desktop /> : <Landing />}</PrefsProvider>;
+  return (
+    <PrefsProvider>
+      <LibraryProvider>{route === 'desktop' ? <Desktop /> : <Landing />}</LibraryProvider>
+    </PrefsProvider>
+  );
 }

@@ -1,6 +1,16 @@
 import { IS_APP } from './environment';
 
-export type AppId = 'finder' | 'safari' | 'terminal' | 'notes' | 'calculator' | 'settings' | 'about';
+export type BuiltinAppId =
+  | 'finder'
+  | 'safari'
+  | 'terminal'
+  | 'notes'
+  | 'calculator'
+  | 'settings'
+  | 'about';
+
+/** Apps installed from a .pkg or .dmg get an `app:` prefix. */
+export type AppId = BuiltinAppId | `app:${string}`;
 
 export interface AppDef {
   id: AppId;
@@ -24,8 +34,18 @@ const ALL_APPS: AppDef[] = [
 /** What the dock and Spotlight offer in this build. */
 export const APPS: AppDef[] = ALL_APPS.filter((app) => !app.appOnly || IS_APP);
 
-/** Every app, including ones this build does not show, so window sizing never has holes. */
-export const APP_MAP: Record<AppId, AppDef> = ALL_APPS.reduce(
-  (acc, app) => ({ ...acc, [app.id]: app }),
-  {} as Record<AppId, AppDef>,
+/** Built-in apps, including ones this build does not show. */
+export const APP_MAP: Record<BuiltinAppId, AppDef> = ALL_APPS.reduce(
+  (acc, app) => ({ ...acc, [app.id as BuiltinAppId]: app }),
+  {} as Record<BuiltinAppId, AppDef>,
 );
+
+export function isInstalledId(id: AppId): id is `app:${string}` {
+  return id.startsWith('app:');
+}
+
+/** Window defaults for anything that can open, including apps that arrived in a package. */
+export function defFor(id: AppId): AppDef {
+  if (isInstalledId(id)) return { id, name: 'App', width: 700, height: 520 };
+  return APP_MAP[id];
+}

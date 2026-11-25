@@ -1,0 +1,21 @@
+{
+  "format": "knits-dmg",
+  "volume": "Knits Gallery",
+  "app": {
+    "id": "gallery",
+    "name": "Gallery",
+    "version": "1.0",
+    "publisher": "Knits Labs",
+    "kind": "gallery",
+    "payload": {
+      "tiles": [
+        { "label": "Aurora", "from": "#6d5cff", "to": "#ff8f6b" },
+        { "label": "Tide", "from": "#0a84ff", "to": "#30d158" },
+        { "label": "Dusk", "from": "#bf5af2", "to": "#ff375f" },
+        { "label": "Mint", "from": "#30d158", "to": "#64d2ff" },
+        { "label": "Ember", "from": "#ff9f0a", "to": "#ff375f" },
+        { "label": "Graphite", "from": "#3a3a42", "to": "#8e8e96" }
+      ]
+    }
+  }
+}

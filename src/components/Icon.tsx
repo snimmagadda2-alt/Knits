@@ -214,6 +214,20 @@ export function Glyph({ name, size = 16 }: { name: string; size?: number }) {
           <path d="M8.4 10.5V8a3.6 3.6 0 0 1 7.2 0v2.5" />
         </svg>
       );
+    case 'download':
+      return (
+        <svg {...props}>
+          <path d="M12 4v11" />
+          <path d="M7.5 10.5L12 15l4.5-4.5" />
+          <path d="M4.5 19.5h15" />
+        </svg>
+      );
+    case 'check':
+      return (
+        <svg {...props}>
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      );
     case 'reload':
       return (
         <svg {...props}>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { APP_MAP, type AppId } from '../apps';
+import { defFor, type AppId } from '../apps';
 import { IS_APP } from '../environment';
 
 export type WinFx = 'new' | 'restore' | null;
@@ -71,7 +71,7 @@ export function useWindows() {
           win.id === existing.id ? { ...win, minimized: false, fx: 'restore', z: nextZ() } : win,
         );
       }
-      const def = APP_MAP[app];
+      const def = defFor(app);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const w = Math.min(def.width, Math.max(300, vw - 80));

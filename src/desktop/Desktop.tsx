@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
-import { APP_MAP, type AppId } from '../apps';
+import { APP_MAP, isInstalledId, type AppId } from '../apps';
 import { usePrefs } from '../prefs';
+import { useLibrary } from '../library';
+import { IS_APP } from '../environment';
+import { Applet } from '../apps/Applet';
+import { PackageInstaller } from '../apps/Installer';
 import { Dock } from '../components/Dock';
 import { MenuBar } from '../components/MenuBar';
 import { Spotlight } from '../components/Spotlight';
@@ -28,6 +32,13 @@ function readSeenVersion(): string | null {
 }
 
 function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
+  const { apps } = useLibrary();
+
+  if (isInstalledId(app)) {
+    const entry = apps.find((item) => `app:${item.id}` === app);
+    return entry ? <Applet app={entry} /> : null;
+  }
+
   switch (app) {
     case 'finder':
       return <Finder />;
@@ -48,6 +59,7 @@ function AppSurface({ app, onClose }: { app: AppId; onClose: () => void }) {
 
 export default function Desktop() {
   const { wallpaper } = usePrefs();
+  const { apps: installedApps, active: activePackage, close: closePackage } = useLibrary();
   const wm = useWindows();
   const [locked, setLocked] = useState(true);
   const [spotlight, setSpotlight] = useState(false);
@@ -88,10 +100,17 @@ export default function Desktop() {
   const running = new Set(wm.wins.map((win) => win.app));
   const activeWin = wm.wins.filter((win) => !win.minimized).sort((a, b) => b.z - a.z)[0] ?? null;
 
+  const nameFor = (id: AppId): string => {
+    if (isInstalledId(id)) return installedApps.find((app) => `app:${app.id}` === id)?.name ?? 'App';
+    return APP_MAP[id].name;
+  };
+
   return (
     <div className="desktop" style={{ background: wallpaper.background }}>
       <MenuBar
-        activeApp={wm.activeApp ? APP_MAP[wm.activeApp] : null}
+        activeApp={
+          wm.activeApp ? { id: wm.activeApp, name: nameFor(wm.activeApp), width: 0, height: 0 } : null
+        }
         onOpenApp={(id) => wm.openApp(id)}
         onSpotlight={() => setSpotlight(true)}
         onLock={() => setLocked(true)}
@@ -110,7 +129,7 @@ export default function Desktop() {
             <Window
               key={win.id}
               win={win}
-              title={APP_MAP[win.app].name}
+              title={nameFor(win.app)}
               active={activeWin?.id === win.id}
               onFocus={() => wm.focus(win.id)}
               onClose={() => wm.close(win.id)}
@@ -129,6 +148,14 @@ export default function Desktop() {
       {spotlight && <Spotlight onClose={() => setSpotlight(false)} onOpenApp={(id) => wm.openApp(id)} />}
 
       {updates && <UpdateLog since={updates.since} onClose={closeUpdates} />}
+
+      {IS_APP && activePackage && (
+        <PackageInstaller
+          download={activePackage}
+          onClose={closePackage}
+          onRun={(id) => wm.openApp(id as AppId)}
+        />
+      )}
     </div>
   );
 }

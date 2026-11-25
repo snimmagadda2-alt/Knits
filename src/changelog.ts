@@ -7,6 +7,17 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.3.0',
+    date: '25 November 2026',
+    changes: [
+      'Safari can download .pkg and .dmg files. They land in a Downloads shelf instead of being rendered as pages.',
+      'Installer opens .pkg files and installs them into Knits: the new app appears in the Dock and Spotlight straight away.',
+      'Disk images mount with a Move to Applications step, then eject when you close them.',
+      'Nothing is written to the real computer — installs live in Knits and are remembered in this browser.',
+      'Knits Software on the Safari start page has three packages to try: Clock, Weather and Gallery.',
+    ],
+  },
+  {
     version: '1.2.0',
     date: '25 November 2026',
     changes: [
