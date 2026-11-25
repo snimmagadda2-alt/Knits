@@ -17,10 +17,13 @@ not run macOS binaries and does not ship or require Apple firmware.
 - **Apps** — Finder over a virtual disk with quick-look, Terminal with a working
   shell subset (`ls`, `cd`, `cat`, `neofetch`, …), Notes that persist, a working
   Calculator, and System Settings for appearance, wallpaper and accent colour.
-- **Lock screen** — click to unlock (any password).
+- **Welcome and sign-in** — the first run asks for your name, then a password, and saves
+  the account on the device. The login screen asks for that password from then on, and
+  so does locking the desktop.
+- **Lock screen** — the account's password, with the name and avatar you set up.
 - **Update log** — the first run of a new version shows what changed; close it with the
   X button or `Esc`, and reopen it from the Apple menu → *What's New in Knits*.
-- **Safari** (installed app only) — address bar with search, back/forward, reload and a
+- **Safari** (installed app only) — address bar with Google search, back/forward, reload and a
   **Reader/Web** switch. Reader fetches a page through the Knits reader service and renders
   its headings, text and links, so pages show even when the site blocks frames; Web shows
   the page in a frame where the site allows it. Links inside a page open in place.
@@ -39,8 +42,8 @@ not run macOS binaries and does not ship or require Apple firmware.
   its dock icon with a squash-and-stretch, reopening springs it back, and new windows
   bounce in.
 
-Preferences, notes and wallpaper choices are stored in `localStorage`. Nothing is
-sent over the network.
+Preferences, notes, wallpaper choices and your account are stored in `localStorage`.
+The password is kept as a salted hash, and nothing is sent over the network.
 
 ## Run it
 
@@ -75,7 +78,7 @@ Vercel, on any static host, and locally.
 ```bash
 npm run build:web    # app bundle only
 npm run deb          # packages dist/web into dist/knits_<version>_all.deb
-sudo apt install ./dist/knits_1.7.0_all.deb
+sudo apt install ./dist/knits_1.9.0_all.deb
 knits
 ```
 
@@ -99,6 +102,41 @@ The package is architecture-independent and depends only on `python3`. It
 recommends a Chromium or Firefox browser for the app window. `knits` serves the
 bundle on `127.0.0.1` on a free port and shuts the server down when the window
 closes.
+
+## Boot the live ISO
+
+The site also offers a bootable image: a clean Debian 12 system with nothing on it but
+Knits, which starts straight into the desktop. Download `knits-amd64.iso` from the site
+(or from the `iso` GitHub release), then either run it in QEMU:
+
+```bash
+qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm -cdrom knits-amd64.iso
+```
+
+…attach it to a VirtualBox or UTM machine with no virtual disk, or write it to a USB
+stick:
+
+```bash
+sudo dd if=knits-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+```
+
+It boots on BIOS and UEFI; turn Secure Boot off, the image is unsigned. There is no
+installer and no second desktop — the image installs the same `.deb` the site hands
+out, logs in on tty1, starts X and runs Chromium in kiosk mode against `127.0.0.1`, so
+the whole screen is the app build of Knits. The live system runs from RAM: nothing is
+written to the disk you booted from, and your account and files last until shutdown.
+
+Build it yourself:
+
+```bash
+sudo apt install live-build debootstrap squashfs-tools xorriso
+npm run build
+sudo npm run build:iso        # dist/knits-<version>-amd64.iso
+```
+
+`.github/workflows/iso.yml` does the same on a `v*` tag or from the Actions tab and
+uploads the image to the `iso` release, which is what the site's download button
+points at. `packaging/iso/README.md` covers the image in detail.
 
 ## Updates
 
@@ -133,9 +171,13 @@ src/
   pages/Landing.tsx    marketing + download page
   prefs.tsx            persisted appearance/wallpaper/accent
   vfs.ts               virtual file system shared by Finder and Terminal
+  account.ts           the local account: name and salted password hash
 packaging/             Debian control files, launcher, icon, server
+packaging/iso/         live-build config for the bootable Debian image
 scripts/build-deb.sh   dpkg-deb build
 scripts/build-feed.mjs update feed: version.json, web bundle, latest.json
+scripts/build-iso.sh   live-build ISO
+.github/workflows/     ISO build and release upload
 install.sh             one-command install from this repository
 ```
 
@@ -211,7 +253,8 @@ npm run build                            # bundle + fresh .deb in public/downloa
 
 - Requires Node.js 20+ to build. `dpkg-deb` (from `dpkg-dev`) is needed only for the
   `.deb` (`npm run build`, `npm run deb`); `npm run build:web` and the update feed need
-  nothing but Node.
+  nothing but Node. The ISO additionally needs `live-build`, `debootstrap`,
+  `squashfs-tools` and `xorriso`, and root.
 - `dist/` is generated. `public/downloads/*.deb` is committed on purpose so static
   hosting can serve the package without the Debian toolchain.
 - Knits is not affiliated with Apple.

@@ -20,7 +20,9 @@ import { Calculator } from '../apps/Calculator';
 import { Settings } from '../apps/Settings';
 import { About } from '../apps/About';
 import { LoginScreen } from './LoginScreen';
+import { Welcome } from './Welcome';
 import { UpdateLog } from './UpdateLog';
+import { readAccount, type Account } from '../account';
 import { useWindows } from './useWindows';
 import { checkForUpdate, installUpdate, markUpdateAttempt, updateAttempted } from '../updater';
 
@@ -75,6 +77,8 @@ export default function Desktop() {
     eject,
   } = useLibrary();
   const wm = useWindows();
+  // First run has no account yet: the welcome screen asks for a name and a password.
+  const [account, setAccount] = useState<Account | null>(readAccount);
   const [locked, setLocked] = useState(true);
   const [spotlight, setSpotlight] = useState(false);
   const [updates, setUpdates] = useState<{ since: string | null } | null>(null);
@@ -134,8 +138,18 @@ export default function Desktop() {
     }
   };
 
+  if (!account) {
+    return <Welcome wallpaper={wallpaper.background} onCreated={setAccount} />;
+  }
+
   if (locked) {
-    return <LoginScreen wallpaper={wallpaper.background} onUnlock={() => setLocked(false)} />;
+    return (
+      <LoginScreen
+        account={account}
+        wallpaper={wallpaper.background}
+        onUnlock={() => setLocked(false)}
+      />
+    );
   }
 
   const running = new Set(wm.wins.map((win) => win.app));

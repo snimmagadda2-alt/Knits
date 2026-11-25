@@ -1,0 +1,89 @@
+#!/bin/sh
+# Knits live image — one user, one session, no login manager.
+#
+# Runs inside the chroot after the packages are installed, so /opt/knits and the
+# knits launcher already exist. Everything here is what turns a plain Debian into
+# a machine that boots into the Knits desktop and nothing else.
+set -e
+
+VERSION="$(dpkg-query -W -f='${Version}' knits 2>/dev/null || echo unknown)"
+
+# ---- the desktop user -------------------------------------------------------
+# The live session logs this account in on tty1. The password below is only the
+# fallback for a text console: the one that matters is the one you choose on the
+# welcome screen, which Knits keeps for itself.
+for group in video audio netdev plugdev input; do
+  getent group "$group" >/dev/null 2>&1 || groupadd "$group"
+done
+useradd --create-home --shell /bin/bash \
+  --groups sudo,video,audio,netdev,plugdev,input knits
+echo 'knits:knits' | chpasswd
+
+# ---- the session ------------------------------------------------------------
+cat > /home/knits/.bash_profile <<'EOF'
+# Knits live session: the desktop starts on the first virtual terminal.
+if [ -z "${DISPLAY:-}" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  exec startx
+fi
+EOF
+
+cat > /home/knits/.xinitrc <<'EOF'
+#!/bin/sh
+# One full-screen window: the Knits desktop, served from 127.0.0.1 by the
+# installed package exactly as it runs on a normal Debian machine.
+xset s off
+xset -dpms
+xset s noblank
+xsetroot -solid '#07070d'
+exec env KNITS_BROWSER=/usr/local/bin/knits-kiosk-browser knits
+EOF
+
+cat > /usr/local/bin/knits-kiosk-browser <<'EOF'
+#!/bin/sh
+# Chromium with no tabs, no address bar and no first-run prompts: the page is the
+# whole screen, so the desktop looks the same as it does in the app window.
+exec chromium \
+  --kiosk \
+  --no-first-run \
+  --no-default-browser-check \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --hide-crash-restore-bubble \
+  --disable-features=Translate,TranslateUI \
+  --disable-gpu \
+  --password-store=basic \
+  --user-data-dir=/home/knits/.config/knits-kiosk \
+  "$1"
+EOF
+
+chmod 755 /usr/local/bin/knits-kiosk-browser
+chown knits:knits /home/knits/.bash_profile /home/knits/.xinitrc
+chmod 644 /home/knits/.bash_profile /home/knits/.xinitrc
+
+# ---- boot straight in -------------------------------------------------------
+install -d /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/autologin.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin knits --noclear %I $TERM
+Type=simple
+EOF
+
+# ---- branding ---------------------------------------------------------------
+echo knits > /etc/hostname
+
+cat > /etc/os-release <<EOF
+PRETTY_NAME="Knits ${VERSION} (Debian 12)"
+NAME="Knits"
+VERSION="${VERSION}"
+VERSION_ID="${VERSION}"
+ID=debian
+ID_LIKE=debian
+HOME_URL="https://knits-nine.vercel.app"
+SUPPORT_URL="https://github.com/snimmagadda2-alt/Knits"
+EOF
+
+cat > /etc/issue <<EOF
+Knits ${VERSION} — Debian 12 live
+EOF

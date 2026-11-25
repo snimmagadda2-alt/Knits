@@ -7,6 +7,15 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.9.0',
+    date: '25 November 2026',
+    changes: [
+      'Knits now opens with a welcome screen: type your name, choose a password, then sign in with it. The account is saved on this computer, and the login screen asks for that password from then on.',
+      'There is a bootable ISO: a clean Debian 12 image with nothing on it but Knits, which boots straight into this desktop. Download it from the site, boot it in QEMU, VirtualBox or UTM, or write it to a USB stick.',
+      'Safari searches with Google, and Google is first in its favourites.',
+    ],
+  },
+  {
     version: '1.8.0',
     date: '25 November 2026',
     changes: [

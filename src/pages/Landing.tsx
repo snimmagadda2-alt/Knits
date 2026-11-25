@@ -5,6 +5,10 @@ import { AppIcon } from '../components/Icon';
 const DEB = `${import.meta.env.BASE_URL}downloads/knits_all.deb`;
 const DEB_NAME = `knits_${__VERSION__}_all.deb`;
 const REPO = 'https://github.com/snimmagadda2-alt/Knits';
+// GitHub Actions publishes the image to the "iso" release, so this link never changes.
+const ISO = `${REPO}/releases/download/iso/knits-amd64.iso`;
+const ISO_RELEASE = `${REPO}/releases/tag/iso`;
+const ISO_NAME = `knits-${__VERSION__}-amd64.iso`;
 
 const FEATURES = [
   {
@@ -36,6 +40,7 @@ export default function Landing() {
         <nav className="nav-links">
           <a href="#features">Features</a>
           <a href="#install">Install</a>
+          <a href="#iso">Live ISO</a>
           <a href="#/desktop">Demo</a>
         </nav>
         <a className="btn btn-small" href={DEB} download={DEB_NAME}>
@@ -156,6 +161,78 @@ knits`}</code>
             <div>
               <h4>Footprint</h4>
               <p>One package, a few hundred kilobytes, no background services</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="install" id="iso">
+          <h2>Boot it for real</h2>
+          <p className="install-sub">
+            The ISO is a clean Debian 12 image with nothing on it but Knits. It boots straight into the desktop
+            above — same menu bar, same dock, same apps — because it runs the same installed build from
+            127.0.0.1. There is no installer and no second desktop environment: Knits is the session.
+          </p>
+
+          <div className="hero-actions" style={{ marginTop: 22 }}>
+            <a className="btn" href={ISO} download={ISO_NAME}>
+              Download ISO (amd64)
+            </a>
+            <a className="btn btn-ghost" href={ISO_RELEASE}>
+              Checksum and build log
+            </a>
+          </div>
+          <p className="install-hint">
+            {ISO_NAME} · about 1.2 GB · boots on UEFI and BIOS · built by GitHub Actions from this repository
+          </p>
+
+          <div className="install-grid">
+            <div className="install-card">
+              <h3>Fastest · QEMU</h3>
+              <pre className="code">
+                <code>{`qemu-system-x86_64 -m 4096 -smp 2 \\
+  -enable-kvm -cdrom ${ISO_NAME}`}</code>
+              </pre>
+              <p className="install-hint">On macOS use -accel hvf instead of -enable-kvm.</p>
+            </div>
+
+            <div className="install-card">
+              <h3>VirtualBox or UTM</h3>
+              <ol className="iso-steps">
+                <li>New machine → Debian 64-bit, 4 GB RAM, 2 CPUs.</li>
+                <li>Choose “Do not add a virtual hard disk”.</li>
+                <li>Settings → Storage → attach the ISO to the optical drive.</li>
+                <li>Start it. If you land in a shell, turn EFI off (System → uncheck Enable EFI).</li>
+              </ol>
+            </div>
+
+            <div className="install-card">
+              <h3>USB stick · real hardware</h3>
+              <pre className="code">
+                <code>{`sudo dd if=${ISO_NAME} of=/dev/sdX \\
+  bs=4M status=progress oflag=sync`}</code>
+              </pre>
+              <p className="install-hint">
+                Rufus, balenaEtcher or Ventoy work too. Turn Secure Boot off — the image is unsigned.
+              </p>
+            </div>
+          </div>
+
+          <div className="requirements">
+            <div>
+              <h4>First boot</h4>
+              <p>A minute of loading, then the welcome screen asks for your name and a password.</p>
+            </div>
+            <div>
+              <h4>Sign in</h4>
+              <p>Knits asks for that password every time it starts, and when you lock the desktop.</p>
+            </div>
+            <div>
+              <h4>Runs from RAM</h4>
+              <p>Nothing is written to your disk. Notes, apps and your account live until you shut down.</p>
+            </div>
+            <div>
+              <h4>Same build</h4>
+              <p>Debian 12, the .deb from this site, and Chromium in kiosk mode — no extra desktop.</p>
             </div>
           </div>
         </section>

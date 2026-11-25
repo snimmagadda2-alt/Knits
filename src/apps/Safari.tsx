@@ -8,6 +8,7 @@ import { Glyph } from '../components/Icon';
 type Mode = 'reader' | 'web';
 
 const FAVORITES = [
+  { title: 'Google', url: 'https://www.google.com' },
   { title: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/MacOS' },
   { title: 'Hacker News', url: 'https://news.ycombinator.com' },
   { title: 'Example', url: 'https://example.com' },
@@ -21,7 +22,8 @@ function normalize(raw: string): string | null {
   if (!value) return null;
   if (/^https?:\/\//i.test(value)) return value;
   if (/^[\w-]+(\.[\w-]+)+([/?#].*)?$/.test(value)) return `https://${value}`;
-  return `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(value)}`;
+  // gbv=1 asks Google for its basic HTML page, which Reader mode can actually read.
+  return `https://www.google.com/search?gbv=1&q=${encodeURIComponent(value)}`;
 }
 
 function hostOf(url: string): string {

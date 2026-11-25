@@ -1,13 +1,39 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { verifyPassword, type Account } from '../account';
 
-export function LoginScreen({ onUnlock, wallpaper }: { onUnlock: () => void; wallpaper: string }) {
-  const [step, setStep] = useState<'idle' | 'password'>('idle');
+export function LoginScreen({
+  account,
+  onUnlock,
+  wallpaper,
+}: {
+  account: Account;
+  onUnlock: () => void;
+  wallpaper: string;
+}) {
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (step === 'password') inputRef.current?.focus();
-  }, [step]);
+    inputRef.current?.focus();
+  }, []);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (busy || !password) return;
+    setBusy(true);
+    const ok = await verifyPassword(password);
+    setBusy(false);
+    setPassword('');
+    if (ok) {
+      setError(false);
+      onUnlock();
+    } else {
+      setError(true);
+      inputRef.current?.focus();
+    }
+  };
 
   return (
     <div className="login" style={{ background: wallpaper }}>
@@ -16,36 +42,35 @@ export function LoginScreen({ onUnlock, wallpaper }: { onUnlock: () => void; wal
         <div className="login-clock">
           {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
         </div>
-        <div className="login-avatar">K</div>
-        <div className="login-name">Knits Studio</div>
+        <div className="login-avatar">{account.name.charAt(0).toUpperCase()}</div>
+        <div className="login-name">{account.name}</div>
 
-        {step === 'idle' ? (
-          <button className="login-cta" onClick={() => setStep('password')}>
-            Click to unlock
-          </button>
-        ) : (
-          <form
-            className="login-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onUnlock();
+        <form className="login-form" onSubmit={submit}>
+          <input
+            ref={inputRef}
+            type="password"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setError(false);
             }}
-          >
-            <input
-              ref={inputRef}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter Password"
-              aria-label="Password"
-            />
-            <button type="submit" aria-label="Unlock">
-              →
-            </button>
-          </form>
-        )}
+            placeholder="Enter Password"
+            aria-label="Password"
+            autoComplete="current-password"
+            maxLength={64}
+          />
+          <button type="submit" aria-label="Log in" disabled={busy}>
+            →
+          </button>
+        </form>
 
-        <p className="login-hint">Any password works — this is a simulation.</p>
+        {error ? (
+          <p className="login-error" role="alert">
+            Incorrect password. Try again.
+          </p>
+        ) : (
+          <p className="login-hint">Your account is stored on this computer only.</p>
+        )}
       </div>
     </div>
   );

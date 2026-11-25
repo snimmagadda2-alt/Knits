@@ -1,6 +1,6 @@
 {
   "name": "knits",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "description": "Knits — a macOS-style desktop environment for .deb devices",
@@ -9,6 +9,7 @@
     "build:web": "tsc --noEmit && vite build && node scripts/build-feed.mjs",
     "build": "npm run build:web && bash scripts/build-deb.sh",
     "deb": "bash scripts/build-deb.sh",
+    "build:iso": "bash scripts/build-iso.sh",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

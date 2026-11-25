@@ -1,0 +1,76 @@
+name: Build live ISO
+
+# The ISO is built here rather than on Vercel: it needs debootstrap, a chroot and
+# about a gigabyte of packages, none of which a static site build can do.
+# Run it by hand from the Actions tab, or push a v* tag.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    # A change to the image itself should publish a new one without anyone having to
+    # remember the Actions tab. Ordinary app pushes do not rebuild the ISO.
+    branches:
+      - main
+    paths:
+      - 'packaging/iso/**'
+      - 'scripts/build-iso.sh'
+      - '.github/workflows/iso.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: iso
+  cancel-in-progress: false
+
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build the app bundle and the .deb
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Install live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            live-build debootstrap squashfs-tools xorriso
+
+      - name: Build the ISO
+        run: sudo env "PATH=$PATH" bash scripts/build-iso.sh
+
+      - name: Publish to the "iso" release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view iso >/dev/null 2>&1 ||
+            gh release create iso \
+              --title "Knits live ISO" \
+              --notes "Bootable Debian image that starts straight into Knits. Built from $GITHUB_SHA." \
+              --latest=false
+          gh release upload iso \
+            dist/knits-amd64.iso \
+            dist/knits-amd64.iso.sha256 \
+            --clobber
+
+      - name: Keep the image as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: knits-iso
+          path: |
+            dist/knits-*.iso
+            dist/knits-*.iso.sha256
+          if-no-files-found: error

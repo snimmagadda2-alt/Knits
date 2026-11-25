@@ -1,0 +1,36 @@
+# Knits live image — a clean Debian with no desktop environment.
+#
+# There is deliberately no GNOME, KDE, XFCE or display manager here: Knits is the
+# session, started on tty1 by packaging/iso/config/hooks/live/0100-knits.hook.chroot.
+
+# Live system
+live-boot
+live-config
+live-config-systemd
+linux-image-amd64
+initramfs-tools
+systemd-sysv
+
+# X, without a desktop environment
+xserver-xorg
+xserver-xorg-video-all
+xserver-xorg-input-all
+xinit
+x11-xserver-utils
+
+# The browser Knits runs in, and the runtime the package needs
+chromium
+python3
+dbus
+
+# A usable console when you switch to tty2
+sudo
+locales
+console-setup
+keyboard-configuration
+fonts-dejavu-core
+ca-certificates
+
+# The desktop itself. build-iso.sh drops the built .deb into
+# config/packages.chroot/, and live-build installs that copy.
+knits
