@@ -8,7 +8,7 @@ const REPO = 'https://github.com/snimmagadda2-alt/Knits';
 // GitHub Actions publishes the image to the "iso" release, so this link never changes.
 const ISO = `${REPO}/releases/download/iso/knits-amd64.iso`;
 const ISO_RELEASE = `${REPO}/releases/tag/iso`;
-const ISO_NAME = `knits-${__VERSION__}-amd64.iso`;
+const ISO_NAME = 'knits-amd64.iso';
 
 const FEATURES = [
   {
@@ -186,8 +186,8 @@ knits`}</code>
             </a>
           </div>
           <p className="install-hint">
-            {ISO_NAME} · about 1.2 GB · boots on UEFI and BIOS · built by GitHub Actions from this repository.
-            If the download is not there yet, run <code>npm run build:iso</code> or start the{' '}
+            {ISO_NAME} · about 560 MB · boots on UEFI and BIOS · built by GitHub Actions from this repository.
+            To build it yourself, run <code>npm run build:iso</code> or start the{' '}
             <a href={`${REPO}/actions/workflows/iso.yml`}>Build live ISO</a> workflow.
           </p>
 
