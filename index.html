@@ -13,6 +13,112 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      /*
+       * If the bundle never runs — a file missing after a deploy, a syntax error in the
+       * build, a browser too old for the code — nothing renders and the page is blank.
+       * This shows the error the browser actually reported instead. Once src/main.tsx
+       * loads it takes over (window.__knitsHandled) and removes anything shown here.
+       */
+      (function () {
+        var shown = false;
+
+        function describe(error) {
+          if (!error) return 'The browser reported no error object.';
+          if (error.stack) return String(error.stack);
+          if (error.message) return String(error.message);
+          return String(error);
+        }
+
+        function make(tag, css, text) {
+          var node = document.createElement(tag);
+          node.style.cssText = css;
+          if (text !== undefined) node.textContent = text;
+          return node;
+        }
+
+        function show(title, lead, detail) {
+          if (shown || window.__knitsMounted || document.getElementById('knits-boot-error')) return;
+          shown = true;
+          var page = make(
+            'div',
+            'position:fixed;inset:0;z-index:2147483000;overflow:auto;display:flex;align-items:center;justify-content:center;padding:28px;background:#0b0b12;color:#f5f5f7;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'
+          );
+          page.id = 'knits-boot-error';
+          page.setAttribute('role', 'alert');
+          var card = make(
+            'div',
+            'width:100%;max-width:720px;padding:26px 28px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#15151b;box-shadow:0 30px 70px rgba(0,0,0,.55)'
+          );
+          card.appendChild(make('div', 'font-size:11px;letter-spacing:.14em;color:rgba(245,245,247,.45);margin-bottom:10px', 'KNITS'));
+          card.appendChild(make('h1', 'margin:0 0 8px;font-size:20px;font-weight:600', title));
+          card.appendChild(make('p', 'margin:0 0 14px;color:rgba(245,245,247,.65)', lead));
+          card.appendChild(
+            make(
+              'pre',
+              'margin:0;padding:14px 16px;border-radius:10px;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);color:#ffb4b4;font:12.5px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;max-height:52vh;overflow:auto',
+              detail
+            )
+          );
+          var row = make('div', 'display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0');
+          var reload = make(
+            'button',
+            'padding:9px 16px;border:0;border-radius:9px;background:#0a84ff;color:#fff;font:inherit;font-weight:500;cursor:pointer',
+            'Reload'
+          );
+          reload.onclick = function () {
+            window.location.reload();
+          };
+          row.appendChild(reload);
+          card.appendChild(row);
+          card.appendChild(
+            make(
+              'div',
+              'margin:16px 0 0;font-size:11.5px;color:rgba(245,245,247,.4)',
+              document.title + ' · ' + window.location.href + ' — the browser console (F12 → Console) has the full report.'
+            )
+          );
+          page.appendChild(card);
+          document.body.appendChild(page);
+        }
+
+        // Capture phase: a <script> that 404s fires on the element, not on window.
+        window.addEventListener(
+          'error',
+          function (event) {
+            if (window.__knitsMounted || window.__knitsHandled) return;
+            var target = event.target;
+            if (target && target !== window && (target.src || target.href)) {
+              show(
+                'Knits did not start',
+                'A file the app needs did not load:',
+                (target.src || target.href) + ' — the file is missing, or the network dropped it.'
+              );
+              return;
+            }
+            show('Knits did not start', 'The desktop did not start. This is the error the browser reported:', describe(event.error || event.message));
+          },
+          true
+        );
+
+        window.addEventListener('unhandledrejection', function (event) {
+          if (window.__knitsMounted || window.__knitsHandled) return;
+          show('Knits did not start', 'The desktop did not start. This is the error the browser reported:', describe(event.reason));
+        });
+
+        setTimeout(function () {
+          if (window.__knitsMounted || window.__knitsHandled) return;
+          show(
+            'Knits did not start',
+            'The app bundle did not run within 12 seconds. This is what the page can see:',
+            'No JavaScript from Knits ran. Usually the build is missing or broken, or this browser cannot run it.\n\nPage: ' +
+              window.location.href +
+              '\nBrowser: ' +
+              navigator.userAgent
+          );
+        }, 12000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

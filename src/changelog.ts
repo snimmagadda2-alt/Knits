@@ -7,6 +7,14 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.10.2',
+    date: '26 November 2026',
+    changes: [
+      'When the desktop cannot start, Knits now shows the error itself — the browser’s message, the stack and the build it came from — instead of a blank page.',
+      'A bundle that never runs at all is reported too: a missing file after a deploy, or a build this browser cannot read, says so on screen.',
+    ],
+  },
+  {
     version: '1.10.1',
     date: '25 November 2026',
     changes: [
