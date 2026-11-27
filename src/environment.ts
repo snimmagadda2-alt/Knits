@@ -5,8 +5,15 @@
  */
 const APP_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
 
+/**
+ * The website's own way into the app build: /appers. Nothing on the site links to it — it
+ * is only reachable by typing the address — so opening it here is deliberate.
+ */
+const APP_PATH = /^\/appers\/?$/i;
+
 function readMode(): boolean {
   try {
+    if (APP_PATH.test(window.location.pathname)) return true;
     const flag = new URLSearchParams(window.location.search).get('app');
     if (flag === '1') return true;
     if (flag === '0') return false;

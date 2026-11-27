@@ -4,7 +4,12 @@ import Desktop from './desktop/Desktop';
 import { PrefsProvider } from './prefs';
 import { LibraryProvider } from './library';
 
+/** The unlisted path that opens the app build; nothing on the site links to it. */
+const APP_PATH = /^\/appers\/?$/i;
+
 function readRoute(): string {
+  // /appers always opens the desktop, even though it carries no hash of its own.
+  if (APP_PATH.test(window.location.pathname)) return 'desktop';
   return window.location.hash.replace(/^#\/?/, '').split('?')[0];
 }
 

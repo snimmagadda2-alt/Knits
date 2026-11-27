@@ -7,6 +7,14 @@ export interface Release {
 /** Newest first. Add a new entry at the top whenever the version in package.json goes up. */
 export const RELEASES: Release[] = [
   {
+    version: '1.11.0',
+    date: '27 November 2026',
+    changes: [
+      'Knits has its own cursor: a yarn-purple arrow for the desktop and a matching hand over everything you can click. It ships in the website demo, the installed .deb and the live ISO alike, because all three run this same bundle.',
+      'Text fields, window resize edges and dragging keep their usual cursors, so typing and resizing still feel the way you expect.',
+    ],
+  },
+  {
     version: '1.10.2',
     date: '26 November 2026',
     changes: [
