@@ -6,5 +6,11 @@
   "outputDirectory": "dist/web",
   "cleanUrls": true,
   "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/appers",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ],
   "rewrites": [{ "source": "/appers", "destination": "/index" }]
 }
