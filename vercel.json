@@ -5,5 +5,5 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist/web",
   "cleanUrls": true,
-  "rewrites": [{ "source": "/appers", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/appers", "destination": "/index" }]
 }
